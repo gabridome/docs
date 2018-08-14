@@ -3,7 +3,7 @@
 Many of you have heard about light clients and full nodes and know at most what
 the difference lay in.
 
-I have Participated to a very interesting workshop in Stanford the past month
+I have Participated to a very interesting workshop in Stanford for Scaling Bitcoin
 and our coordinator Tadjie Dryja has done an excellent job in
 laying down the current situation made of many more nuances I knew of.
 
@@ -31,9 +31,9 @@ and use of a full node.
 
 ## But why should I run a fully validating node?
 
-The simplest explanation I have read is the one reported by Adam Back when he
+The simplest explanation I have read is the one reported by Doctor Adam Back when he
 says that the full nodes are like the anti counter-fitting machines you can
-find in many shops: for one they ensure the merchant he is receiving good money
+find in many shops: for one, they ensure the merchant he is receiving good money
 but also they help in maintaining the system clean of fake money in general.
 
 "Fake bitcoins", meaning in this context a transaction that tries to spend
@@ -45,14 +45,17 @@ A full validating node when receives the transaction performs the security
 checks necessary to veriy that the transaction involves sound money before
 putting it in the [mempool] and relaying it to the rest of the network.
 
-The node is able do so because he has a copy of all the legit transactions
-which have appeared in the network since inception included those in which
-all the bitcoins come into existence in the [coinbase] transactions.
+### The full history of all the transactions
 
-In the validation phase, the nodes don't search the whole transaction set though. 
-Instead, during the IBD, they build an essential database of the legit money in circulation in the Bitcoin system: the Unspent Transaction Output Set (UTXO set) 
-AKA, the Chainstate database. If the transaction is spending an output that is
-NOT on this set, it is to be considered invalid as it is a double-spent attempt. 
+In Bitcoin, money come to life and exist only in transactions.
+The node is able validate the incoming money because the node has a copy of 
+all the legit transactions which have appeared in the network since inception 
+included those in which all the bitcoins come into existence ([coinbase] transactions).
+
+Transactions in Bitcoin take the money from previous transactions and allocate them 
+in transaction outputs. If these outputs are not used in other transactions, they are 
+"unspent". The entire set of all the NON spent Transaction outputs is called UTXO 
+(Unspent Transaction Output).
 
 Since a transaction output is considered unspent until is used in a subsequent
 transaction in which is referred as input, is necessary to have the whole
