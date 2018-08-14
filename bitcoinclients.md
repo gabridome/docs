@@ -4,7 +4,7 @@ Many of you have heard about light clients and full nodes and know at most what
 the difference lay in.
 
 I have Participated to a very interesting workshop in Stanford for Scaling Bitcoin
-and our coordinator Tadjie Dryja has done an excellent job in
+and our coordinator, Tadjie Dryja has done an excellent job in
 laying down the current situation made of many more nuances I knew of.
 
 These Nuances lead to different trade offs between security and performance
@@ -13,20 +13,20 @@ the ledger.
 
 ## Full Validating Node
 
-The first types of wallet we examine is the one that can be activated with a Full 
-Validating Node.
+The first types of wallet we examine is the one that can be activated with a [Full 
+Validating Node][fullNode].
 
 "A full node is a program that fully validates transactions and blocks." [fullNode]
 
 To do this in a trustless way, it must have [downloaded and verified ALL][IBD] the 
-transactions occurred in the Bitcoin network since inception and to stay synchronized 
-with the network to keep its own copy of the Bitcoin economy up-to-date.
+transactions occurred in the Bitcoin network and from then on, it receives all the new 
+transactions and blocks and verify them.
 
-Because its verification of every single transaction and block the Full node keeps the 
-up-to-date and most reliable map of where all the bitcoin in circulation are and of 
-what is required to move them. it has seen and verified the transactions with which 
-all the bitcoins are born and all the subsequent transactions that have moved them from 
-their initial [Transaction Output][TXO] to the next until their [final actual position][UTXO].
+It verifies the correctness of the birth of every bitcoin, the passage from a [Transaction 
+Output][TXO] to the next until the [Transaction Output from which it is not been spent yet][UTXO].
+The verified UTXO set is the map of where all the bitcoin in circulation are and of 
+what is required to move them. 
+
 
 In normal operation, a fully validating node takes [20 Gbytes/month][MinimumRequirements]
 of data from your bandwith, to:
@@ -50,10 +50,10 @@ says that the full nodes are like the anti counter-fitting machines you can
 find in many shops: for one, they ensure the merchant that he is receiving good money
 but also they help in maintaining the system clean of fake money in general.
 
-"Fake bitcoins", meaning in this context a transaction that tries to spend
-bitcoins created in an invalid way or to spend coins already spent in a previous
-transaction, are refused by full nodes as soon as the transaction tries to 
-approach the first one in the propagation phase.
+"Fake bitcoins", meaning in this context those resulting from a transaction that 
+tries to spend bitcoins created in an invalid way or to spend coins already 
+spent in a previous transaction, are refused by full nodes as soon as the 
+transaction tries to approach the first one in the propagation phase.
 
 A full validating node when receives the transaction performs the security
 checks necessary to veriy that the transaction involves sound money before
