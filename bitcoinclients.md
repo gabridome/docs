@@ -13,26 +13,35 @@ the ledger.
 
 ## Full Validating Node
 
-At the time of writing, the blockchain is 170 Gbytes in size and the UTXO set
-is 4.5 Gbytes.
+The first types of wallet we examine is the one that can be activated with a Full 
+Validating Node.
 
-The IBD (Initial blocks Downloads and validation) takes 4 hours to almost a day
-according to experts but for me has always been much more (beyond four days).
+"A full node is a program that fully validates transactions and blocks." [fullNode]
 
-In normal operation, a fully validating node takes [insert here] Gbytes/month
+To do this in a trustless way, it must have [downloaded and verified ALL][IBD] the 
+transactions occurred in the Bitcoin network since inception and to stay synchronized 
+with the network to keep its own copy of the Bitcoin economy up-to-date.
+
+Because its verification of every single transaction and block the Full node keeps the 
+up-to-date and most reliable map of where all the bitcoin in circulation are and of 
+what is required to move them. it has seen and verified the transactions with which 
+all the bitcoins are born and all the subsequent transactions that have moved them from 
+their initial [Transaction Output][TXO] to the next until their [final actual position][UTXO].
+
+In normal operation, a fully validating node takes [20 Gbytes/month][MinimumRequirements]
 of data from your bandwith, to:
 
 * relay transactions and blocks
 * to serve blocks requested for IBD by other nodes
 * to serve filtered blocks and transactions for SPV Clients
 
+At the time of writing, the blockchain is 170 Gbytes in size and the UTXO set
+is 4.5 Gbytes.
+A full Node can also be your wallet and it is the most reliable from an economic 
+point of view, because it validates everything in the network.
+
 These resources are considered one of the biggest obstacle to the installation
 and use of a full node.
-
-Full validating nodes are the image of the whole Bitcoin economy. One of their 
-components may  be an integrated wallet but they are much more: they are the 
-nodes on which the entire protocol relies and they give the exact status of where 
-the legit bitcoins are and what is necessary to move them.
 
 ## But why should I run a fully validating node?
 
@@ -49,6 +58,12 @@ approach the first one in the propagation phase.
 A full validating node when receives the transaction performs the security
 checks necessary to veriy that the transaction involves sound money before
 putting it in the [mempool] and relaying it to the rest of the network.
+
+* Is the signature on the transaction valid? (power of spend)
+* are money created into/during the transaction? (accounting check)
+* Are the funds being spent existent and unspent before? (double spend check)
+
+This last check requires is the one requiring a legit copy of UTXO set.
 
 A wallet which is integrated with a full validating node have the maximum security 
 and truslessness because it relies on the global informations of the Bitcoin economy
@@ -72,12 +87,6 @@ so to build the UTXO set.
 
 The UTXO set is the real kernel of the system because the most important checks
 a full node do are:
-
-* Is the signature on the transaction valid? (power of spend)
-* are money created into/during the transaction? (accounting check)
-* Are the funds being spent existent and unspent before? (double spend check)
-
-This last check requires is the one requiring a legit copy of UTXO set.
 
 The UTXO set must be shared by all the computers of the network because is the
 essence of the Bitcoin economic system.
@@ -140,3 +149,11 @@ Obviously these operations are a burden but they can be shared between wallets
 and mining nodes for instance by requiring the wallets to manage their part
 of the UTXO set and to provide merkle proofs of their spending to the miners
 along with the transaction. Rusty call these UTXO proofs.
+
+
+[fullNode]: https://btcinformation.org/en/full-node
+[MinimumRequirements]: https://btcinformation.org/en/full-node#minimum-requirements
+[IBD]: https://btcinformation.org/en/glossary/initial-block-download
+[TXO]: https://btcinformation.org/en/glossary/output
+[UTXO]: https://btcinformation.org/en/glossary/unspent-transaction-output
+
