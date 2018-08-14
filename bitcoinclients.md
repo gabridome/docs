@@ -1,4 +1,4 @@
-# Bitcoin clients types and security models
+# Bitcoin Trustlessness and different wallet types
 
 Many of you have heard about light clients and full nodes and know at most what
 the difference lay in.
@@ -29,11 +29,16 @@ of data from your bandwith, to:
 These resources are considered one of the biggest obstacle to the installation
 and use of a full node.
 
+Full validating nodes are the image of the whole Bitcoin economy. One of their 
+components may  be an integrated wallet but they are much more: they are the 
+nodes on which the entire protocol relies and they give the exact status of where 
+the legit bitcoins are and what is necessary to move them.
+
 ## But why should I run a fully validating node?
 
 The simplest explanation I have read is the one reported by Doctor Adam Back when he
 says that the full nodes are like the anti counter-fitting machines you can
-find in many shops: for one, they ensure the merchant he is receiving good money
+find in many shops: for one, they ensure the merchant that he is receiving good money
 but also they help in maintaining the system clean of fake money in general.
 
 "Fake bitcoins", meaning in this context a transaction that tries to spend
@@ -44,6 +49,9 @@ approach the first one in the propagation phase.
 A full validating node when receives the transaction performs the security
 checks necessary to veriy that the transaction involves sound money before
 putting it in the [mempool] and relaying it to the rest of the network.
+
+A wallet which is integrated with a full validating node have the maximum security 
+and truslessness because it relies on the global informations of the Bitcoin economy
 
 ### The full history of all the transactions
 
