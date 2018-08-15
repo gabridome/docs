@@ -72,7 +72,7 @@ past and present, to manage the wealth and transactions of a single user could b
 seen as a little too much. For these reason through the years some alternative 
 has been explorated.
 
-## The pruned node and the importance of the UTXO set
+## The Pruned Node and the importance of the UTXO set
 
 From the single user perspective, the verification of the incoming money is the 
 most important task a wallet must perform. To be sure to receive good money, at 
@@ -96,7 +96,11 @@ downloading and verifing all the transaction history, but then it pruned it.
 is legit or to **trust** whoever give it to you, unless you have built it yourself
 after having validated all the transactions in the world.*
 
-## what do I loose if I run a pruned node?
+A pruned node can be considered an excellent wallet foundation because it monitors 
+the network against double spending and verify the origin of the money with a legit 
+UTXO set.
+
+### what do I loose if I run a pruned node?
 
 For sure you loose the possibility to build again your UTXO set without
 downloading and re-validating the entire blockchain in case the chainstate
@@ -115,27 +119,40 @@ commit not only to the transactions in the block but also to the whole UTXO
 set. It is of course a different type of validation because one would rely 
 on the merkle root in the header of the block or inside the coinbase transaction 
 instead of personally build and verify the history but as long you choose to trust 
-the header (for instance because it has the right proof of work), this could be 
-considered enough.
+the header because it embeds the right amount of proof of work and/or because you can 
+get the same headre from other peers, this could be considered enough.
 
 These proposals go under the name of UTXO commitments.
-
 What you trust here is not your own calculation of the UTXO set but the fact
 that the copy in your possess (in whatever way you have obtained it) is the
 same the miners has certified with a good amount of proof of work in the latest block.
 
+There also a [proposal][TXOCommitments] by Peter Todd of having all the 
+TXOs (spent and unspent) in [Merkle Mountain Ranges][MMR] with a serie of 
+caching mechanism to help the intense cpu and I/O overhead necessary to keep 
+the system in synch.
+
 The payer can also can also prove a payment is valid providing the merkle proof
 that the particular output he is spending was in the UTXO set and result
-spent in the subsequent block.
+spent in the subsequent block. 
 One way this last proof of non-presence could be supplied by keeping a merkle root
 of an ordered and numbered UTXO set. By providing the proof of the presence 
 of preceding and subsequent UTXO, the payee may verify the non presence of the 
-relevant UTXO.
+relevant UTXO. In this particular case the payee may also avoid keeping a 
+copy of the UTXO set. [This idea](https://diyhpl.us/wiki/transcripts/sf-bitcoin-meetup/2017-07-08-bram-cohen-merkle-sets/) by Bram Cohen would also imply the presence of a [bitfield][TXOBitfields] 
+associated with each TXO. There an interesting [comparison between the two 
+proposals](https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2016-June/012758.html)
+made by Bram Cohen. 
+
 
 Obviously these operations are a burden but they can be shared between wallets
 and mining nodes for instance by requiring the wallets to manage their part
 of the UTXO set and to provide merkle proofs of their spending to the miners
 along with the transaction. Rusty call these UTXO proofs.
+
+Future wallets which will relay on UTXO commitments will have in general a good 
+security based on the proof of work embedded in the headers of the blockchain.
+
 
 ## UHS
 
@@ -156,5 +173,8 @@ by the payer in the UHS (after or while verifying the "power to spend").
 [IBD]: https://btcinformation.org/en/glossary/initial-block-download
 [TXO]: https://btcinformation.org/en/glossary/output
 [UTXO]: https://btcinformation.org/en/glossary/unspent-transaction-output
+[TXOCommitments]: https://petertodd.org/2016/delayed-txo-commitments
+[MMR]: https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2017-February/013592.html
+[TXOBitfields]: https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2017-March/013928.html
 [UHS]: https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2018-May/015967.html
 
