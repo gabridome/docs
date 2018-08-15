@@ -13,10 +13,21 @@ the ledger.
 
 ## Full Validating Node
 
-The first types of wallet we examine is the one that can be activated with a [Full 
-Validating Node][fullNode].
+"A [full node][fullNode] is a program that fully validates transactions and blocks.".
 
-"A full node is a program that fully validates transactions and blocks." [fullNode]
+The first types of wallet we examine is the one that can be activated with a Full 
+Validating Node.
+
+The simplest explanation I have read is the one reported by Doctor Adam Back when he
+says that the full nodes are like the anti counter-fitting machines you can
+find in many shops: for one, they ensure the merchant that he is receiving good money
+but also they help in maintaining the system clean of fake money in general.
+
+While a wallet software main purpose should be the correct management of the personal 
+finance of the user. For a full validating node, the wallet component is a by-product 
+of its duty of keeping the system healthy and serve a correct version state of the 
+Bitcoin economy, so while it can serve the correct image of the status of the accounting, 
+it can also be used by the user to manage his money.
 
 To do this in a trustless way, it must have [downloaded and verified ALL][IBD] the 
 transactions occurred in the Bitcoin network and from then on, it receives all the new 
@@ -27,6 +38,22 @@ Output][TXO] to the next until the [Transaction Output from which it is not been
 The verified UTXO set is the map of where all the bitcoin in circulation are and of 
 what is required to move them. 
 
+A full validating node when receives the transaction performs the security
+checks necessary to veriy that the transaction involves sound money before
+putting it in the [mempool] and relaying it to the rest of the network:
+
+* Is the signature on the transaction valid? (power of spend)
+* are money created into/during the transaction? (accounting check)
+* Are the funds being spent existent and unspent before? (double spend check)
+
+This last check requires is the one requiring a legit copy of UTXO set.
+
+"Fake bitcoins", meaning in this context those resulting from a transaction that 
+tries to spend bitcoins created in an invalid way or to spend coins already 
+spent in a previous transaction, are refused by full nodes as soon as the 
+transaction tries to approach the first one in the propagation phase.
+A wallet which is integrated with a full validating node have the maximum security 
+and truslessness because it relies on the global informations of the Bitcoin economy
 
 In normal operation, a fully validating node takes [20 Gbytes/month][MinimumRequirements]
 of data from your bandwith, to:
@@ -36,85 +63,38 @@ of data from your bandwith, to:
 * to serve filtered blocks and transactions for SPV Clients
 
 At the time of writing, the blockchain is 170 Gbytes in size and the UTXO set
-is 4.5 Gbytes.
-A full Node can also be your wallet and it is the most reliable from an economic 
-point of view, because it validates everything in the network.
+is 2.6 Gbytes.
 
 These resources are considered one of the biggest obstacle to the installation
-and use of a full node.
+and use of a full node and they are not suited to be used in low resources 
+devices like mobile phones. Also to have the whole image of the Bitcoin economy, 
+past and present, to manage the wealth and transactions of a single user could be 
+seen as a little too much. For these reason through the years some alternative 
+has been explorated.
 
-## But why should I run a fully validating node?
+## The pruned node and the importance of the UTXO set
 
-The simplest explanation I have read is the one reported by Doctor Adam Back when he
-says that the full nodes are like the anti counter-fitting machines you can
-find in many shops: for one, they ensure the merchant that he is receiving good money
-but also they help in maintaining the system clean of fake money in general.
+From the single user perspective, the verification of the incoming money is the 
+most important task a wallet must perform. To be sure to receive good money, at 
+very least it is necessary to verify:
 
-"Fake bitcoins", meaning in this context those resulting from a transaction that 
-tries to spend bitcoins created in an invalid way or to spend coins already 
-spent in a previous transaction, are refused by full nodes as soon as the 
-transaction tries to approach the first one in the propagation phase.
+* that the money come from the legit UTXO set (money in circulation)
+* that the user has correctly demonstrated the right to spend those bitcoins
+* that no money has been created inside the transaction
+* that he is not trying to spend those money ALSO somewhere else
 
-A full validating node when receives the transaction performs the security
-checks necessary to veriy that the transaction involves sound money before
-putting it in the [mempool] and relaying it to the rest of the network.
+For these checks there is no a real need to have the whole history of the bitcoin 
+transactions but for the anti double spending, but to be sure on the origin it 
+would be necessary to have the UTXO set and to check being the only one receiving 
+those money in that moment it would be useful to have a monitor on all the 
+transactions happening.
 
-* Is the signature on the transaction valid? (power of spend)
-* are money created into/during the transaction? (accounting check)
-* Are the funds being spent existent and unspent before? (double spend check)
-
-This last check requires is the one requiring a legit copy of UTXO set.
-
-A wallet which is integrated with a full validating node have the maximum security 
-and truslessness because it relies on the global informations of the Bitcoin economy
-
-### The full history of all the transactions
-
-In Bitcoin, money come to life and exist only in transactions.
-The node is able validate the incoming money because the node has a copy of 
-all the legit transactions which have appeared in the network since inception 
-included those in which all the bitcoins come into existence ([coinbase] transactions).
-
-Transactions in Bitcoin take the money from previous transactions and allocate them 
-in transaction outputs. If these outputs are not used in other transactions, they are 
-"unspent". The entire set of all the NON spent Transaction outputs is called UTXO 
-(Unspent Transaction Output).
-
-Since a transaction output is considered unspent until is used in a subsequent
-transaction in which is referred as input, is necessary to have the whole
-transaction history to judge which transaction outputs are effectively unspent
-so to build the UTXO set.
-
-The UTXO set is the real kernel of the system because the most important checks
-a full node do are:
-
-The UTXO set must be shared by all the computers of the network because is the
-essence of the Bitcoin economic system.
-
-NO ONE LEGIT SATOSHI EXISTS OUT OF THE UTXO SET.
-
-## Well. Why then we cannot just keep just the updated UTXO set?
-
-The good news is that in a certain way we can, and various of the "nuances" we
-talked about during the workshop are based on the assumption that if you have a
-**valid** and up-to-date "map" of all the legit money in circulation, you don't
-need all the documentation about how this money have been generated and moved
-to its actual position.
-
-Problem is that you cannot state that you have a valid copy of the UTXO set if
-you haven't validated each single transaction that has contributed to create it.
-This is of course because the UTXO set is the result of the history of all
-the bitcoins from their creation to their latest *destination* (the last output). 
-
-This is exactly the trade off:
+This is what apruned node does. It builds the UTXO set in the radical way by 
+downloading and verifing all the transaction history, but then it pruned it.
 
 *You have to trust that your copy of the UTXO set
 is legit or to **trust** whoever give it to you, unless you have built it yourself
 after having validated all the transactions in the world.*
-
-## but could I drop all the huge history of the transactions after having used it to build my legit UTXO set?
-
-This is exactly what a **pruned node** does.
 
 ## what do I loose if I run a pruned node?
 
@@ -131,24 +111,44 @@ pruned and still possess.
 ## Is there a way to know the UTXO set is legit without rebuilding and validating the whole history?
 
 One way would be to relay on an improved blockchain in which the headers
-commit not only to the transactions in the block but also to the whole UTXO set. It is of course a different type of
-validation because one would rely on the merkle root in the header of the block instead of personally build and verify the history but as long you choose to trust the header (for instance because it has the right proof of work), this could be considered enough.
+commit not only to the transactions in the block but also to the whole UTXO 
+set. It is of course a different type of validation because one would rely 
+on the merkle root in the header of the block or inside the coinbase transaction 
+instead of personally build and verify the history but as long you choose to trust 
+the header (for instance because it has the right proof of work), this could be 
+considered enough.
 
-These proposal go under the name of UTXO commitments.
+These proposals go under the name of UTXO commitments.
 
 What you trust here is not your own calculation of the UTXO set but the fact
 that the copy in your possess (in whatever way you have obtained it) is the
-same the miners has certified in the latest block.
-You can of course also prove a payment is valid providing the merkle proof
-that the particular output you are spending was in the UTXO set and result
-spent in the subsequent block (this last proof would require the output
-ordering and the providing of the proof of the preceding and the subsequent
-output).
+same the miners has certified with a good amount of proof of work in the latest block.
+
+The payer can also can also prove a payment is valid providing the merkle proof
+that the particular output he is spending was in the UTXO set and result
+spent in the subsequent block.
+One way this last proof of non-presence could be supplied by keeping a merkle root
+of an ordered and numbered UTXO set. By providing the proof of the presence 
+of preceding and subsequent UTXO, the payee may verify the non presence of the 
+relevant UTXO.
 
 Obviously these operations are a burden but they can be shared between wallets
 and mining nodes for instance by requiring the wallets to manage their part
 of the UTXO set and to provide merkle proofs of their spending to the miners
 along with the transaction. Rusty call these UTXO proofs.
+
+## UHS
+
+An other [proposal][UHS] which goes in this direction is Cory Fields' UHS, in which 
+the receiver could have **the same security without keeping the whole UTXO set 
+but just a set of an hash for each UTXO**.
+This hash is obtained by some agreed upon data from the preceding transaction 
+output to verify the "power to spend" concatenated with the ID of the UTXO the outpoint. 
+If this interesting proposal is adopted, future clients would store just 
+the UHS which weight about half the UTXO set and verify in a very fast way 
+the incoming transaction, by checking the existence of the hash of the data supplied 
+by the payer in the UHS (after or while verifying the "power to spend").
+
 
 
 [fullNode]: https://btcinformation.org/en/full-node
@@ -156,4 +156,5 @@ along with the transaction. Rusty call these UTXO proofs.
 [IBD]: https://btcinformation.org/en/glossary/initial-block-download
 [TXO]: https://btcinformation.org/en/glossary/output
 [UTXO]: https://btcinformation.org/en/glossary/unspent-transaction-output
+[UHS]: https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2018-May/015967.html
 
