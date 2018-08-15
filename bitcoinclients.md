@@ -24,13 +24,13 @@ find in many shops: for one, they ensure the merchant that he is receiving good 
 but also they help in maintaining the system clean of fake money in general.
 
 While a wallet software main purpose should be the correct management of the personal 
-finance of the user. For a full validating node, the wallet component is a by-product 
+finance of the user, For a full validating node, the wallet component is a by-product 
 of its duty of keeping the system healthy and serve a correct version state of the 
-Bitcoin economy, so while it can serve the correct image of the status of the accounting, 
-it can also be used by the user to manage his money.
+Bitcoin economy, so while it can serve the correct image of the global status of 
+the accounting of the Bitcoin network, it can also be used by the user to manage his money.
 
-To do this in a trustless way, it must have [downloaded and verified ALL][IBD] the 
-transactions occurred in the Bitcoin network and from then on, it receives all the new 
+To do this in a trustless way, it must have [downloaded and verified ALL the 
+transactions occurred in the Bitcoin network][IBD] and from then on, it receives all the new 
 transactions and blocks and verify them.
 
 It verifies the correctness of the birth of every bitcoin, the passage from a [Transaction 
