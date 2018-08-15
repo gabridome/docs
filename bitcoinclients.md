@@ -3,8 +3,8 @@
 Many of you have heard about light clients and full nodes and know at most what
 the difference lay in.
 
-I have Participated to a very interesting workshop in Stanford for Scaling Bitcoin
-and our coordinator, Tadjie Dryja has done an excellent job in
+I have Participated to a very interesting workshop in Stanford for Scaling 
+Bitcoin and our coordinator, Tadjie Dryja has done an excellent job in
 laying down the current situation made of many more nuances I knew of.
 
 These Nuances lead to different trade offs between security and performance
