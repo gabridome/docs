@@ -140,8 +140,8 @@ along with the transaction. Rusty call these UTXO proofs.
 ## UHS
 
 An other [proposal][UHS] which goes in this direction is Cory Fields' UHS, in which 
-the receiver could have **the same security without keeping the whole UTXO set 
-but just a set of an hash for each UTXO**.
+the receiver could have **the same security of an UTXO based wallet without keeping the 
+whole UTXO set but just a set composed by an hash for each UTXO (UHS)**.
 This hash is obtained by some agreed upon data from the preceding transaction 
 output to verify the "power to spend" concatenated with the ID of the UTXO the outpoint. 
 If this interesting proposal is adopted, future clients would store just 
