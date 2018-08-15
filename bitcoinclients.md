@@ -177,13 +177,26 @@ In the [SPV Validation Model][SPVValidation] The client to perform the validatio
 
 * keeps all the block headers of the Blockchain
 * request the transaction that want to validate to a node
-* request the merkle proof that the transaction has been included into a certain block
+* request the merkle proof that the transaction has been included into a 
+certain block
 
 This validation approach is vulnerable to two main weaknesses:
 
-### the node could say the transaction doesn't exist in a block and don't provide the merkle proof(lying)
+### The node can deny the presence of a transaction in the block even if it is present 
 
-This could be mitigated by connecting and asking to more than one client but also this could be subject to [Network partitioning][NetworkPartitioning] or a [Sybil attack][SybilAttack].
+This could be mitigated by connecting and asking to more than one client but 
+also this could be subject to [Network partitioning][NetworkPartitioning] 
+or a [Sybil attack][SybilAttack].
+
+### The request of the relevant transactions by the wallet releals to the node too much about the user
+
+This could be mitigate by requesting also many infos to which the wallet is 
+not really interested just to confuse the node but this is a lot of overhead 
+and is against Scaling purposes.
+
+>*The bottom line of the SPV validation is that it is valid if you don't 
+care so much about the privacy of your transactions and you trusting that 
+a majority of your connected peers are not lying.*
 
 
 [fullNode]: https://btcinformation.org/en/full-node
