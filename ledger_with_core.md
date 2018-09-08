@@ -1,3 +1,5 @@
+https://gist.github.com/achow101/a9cf757d45df56753fae9d65db4d6e1d
+
 bitcoind -regtest
 bitcoin-cli generate 102
 
