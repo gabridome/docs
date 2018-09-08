@@ -77,7 +77,6 @@ bitcoin-cli -regtest scantxoutset start '["combo(tpubDCD9NnZCwAYgQoYB6VqZ8huAaGN
     }
   ],
   "total_amount": 10.00000000
-```
 
 createwallet "wallet_name" ( disable_private_keys )
 getreceivedbyaddress "address" ( minconf )
@@ -86,10 +85,15 @@ loadwallet "filename"
 sendtoaddress "address" amount ( "comment" "comment_to" subtractfeefromamount replaceable conf_target "estimate_mode")
 signrawtransactionwithwallet "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...] sighashtype )
 unloadwallet ( "wallet_name" )
+
+```
+
+
+
+```
 walletcreatefundedpsbt [{"txid":"id","vout":n},...] [{"address":amount},{"data":"hex"},...] ( locktime ) ( replaceable ) ( options bip32derivs )
+
 walletprocesspsbt "psbt" ( sign "sighashtype" bip32derivs )
-
-
 
 $ bitcoin-cli help walletcreatefundedpsbt
 walletcreatefundedpsbt [{"txid":"id","vout":n},...] [{"address":amount},{"data":"hex"},...] ( locktime ) ( replaceable ) ( options bip32derivs )
@@ -185,4 +189,11 @@ Result:
 
 Examples:
 > bitcoin-cli walletprocesspsbt "psbt"
+```
+```
+bitcoin-cli -regtest walletcreatefundedpsbt "[{\"txid\": \"7b06b13740d8b4caa8eaaf0e50cac59948f27af2c55e597238d0bc430e83df6e\",\"vout\": 0}]" "[{\"bcrt1qlvtezda7ajs4qr0x03tzyeduetz7jwufgcg056\": 5}]" 0 "{\"changeAddress\": \"2N6iuazxEt4TuoSEMMWtgMCA6QGxeFmbPyF\",\"includeWatching\": true, \"subtractFeeFromOutputs\": [0], \"replaceable\": true}" true
+
+```
+
+
 
