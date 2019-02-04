@@ -43,15 +43,20 @@ Depending on the resources available the synchronization could take hours or day
 The [repository to clone Elctrs](https://github.com/romanz/electrs) has also the instructions to 
 [install it](https://github.com/romanz/electrs/blob/master/doc/usage.md).
 
-In few hours your Electrum server should be synchronized and usable on localhost. Now we want to expose it on the Tor Network
-for our eyes only.
+In few hours your Electrum server should be synchronized and usable on localhost. 
+It could be a wise idea to test the server on localhost if you have installed the server on the same machine you 
+have the Electrum client installed. In which case you can run Electrum and simply connect to your server by going on
+Tools/Network/Servers, deselecting "Select servers automatically" and setting server to "127.0.0.1" and port "50001".
+If the led on the botton right turns green, you are connected on your local electrum server.
+
+Now we want to expose it on the Tor Network for our eyes only.
 
 ## 4. Set up an Hidden Service to make the Elelectrum Server Service reachable from outside in an authenticated way
 
 To have an authenticated .onion address your Electrum client can connect to
 it is necessary to add these lines in the /etc/tor/torrc file (or wherevever this file is located on your platform):
 
-HiddenServiceDir /var/lib/tor/electrs_V3/
+HiddenServiceDir /var/lib/tor/electrs/
 HiddenServiceVersion 3
 HiddenServicePort 50001 127.0.0.1:50001
 HiddenServiceAuthorizeClient stealth homeDesktop,OfficeDesktop,laptop 
