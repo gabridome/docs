@@ -80,7 +80,7 @@ Save the file and restart the Tor service. In linux:
 
 You will find the newly created address with:
 
-sudo cat /var/lib/tor/var/lib/tor/electrs/hostname 
+sudo cat /var/lib/tor/electrs/hostname 
 in the case of a version 3 Tor address.
 
 You will find something like:
