@@ -1,82 +1,87 @@
 # Securing C-lightning funds with PostgresQL reliability capabilities
 
+This article assumes a good knowledge of how Lightning Network works. for a better understanding there are good [articles][Lightning Network] or the [Lightning Network RFC].
+
 ## The problem
 
-Data is already literally money in Bitcoin but in Lightning Network this embrace also data integrity and channel state in every single moment. It is not my scope to dig into the details of how the Lightning Network works but luckily there are a bunch of articles that [does this job much better than me](https://bitcoinmagazine.com/articles/understanding-the-lightning-network-part-building-a-bidirectional-payment-channel-1464710791). 
+Every Lightning Network node must keep track of every *state* of each of his channels in every moment in order to preserve the integrity of the funds it manages. 
 
-It is worth noting nevertheless that every Lightning Network node must keep track of every *state* of each of his channels in every moment in order to preserve the integrity of the funds it manages. 
+If a node broadcast an old channel state, force closing a channel, its peer have lag of time within which it has the right and will broadcast a [penalty transaction], spending the funds who whoud be destined to the node, to an address the peer control. 
 
-In the eventuality of non-cooperative close of the channel, the closing party broadcasts what it declares to be the last state of the financial situation it has with its peer. Its peer receives immediately what it has been declared as its share of the satoshis in the channel but also it has a period of time at its disposal to examine the situation and, in case it finds the state of the channel is older of one it has in its records, the node can take advantage of a mechanism called "[penalty transaction](https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md#penalty-transaction)" and take possess also of its peer's share.
-
-The existence and the necessity of the punitive mechanism unfortunately, implies that in case of loss of data on our node, having the backup of the seed of the wallet doesn't save the money the node manages in the open channels but only the money the node keeps outside of them which normally represents a small part of the total. 
-
-Infact if we restore a non perfectly up-to-date version of the data and, in a later moment, close a channel in a non-cooperative way, the state of the channel we broadcast might not be the latest and our peer at that moment will broadcast the penalty transaction without asking any more question, presuming we have tried to take advantage of an previous financial situation with him (channel state). this brings us to lose our share of satoshis in that channel and, due to the ever changing situation of the channel in the node, it is also hard to evaluate the overall risk of such eventuality in the totality of our channels.
+This implies that if we loose the data regarding the channel state (due e.g. to a system failure), have a non perfectly up-to-date backup to restore from, it is really dangerous to force close any of our channel, because we cannot be sure to broadcast the latest valid state and we could loose our share of bitcoins in the channel.
 
 What it is really needed in case of data loss in the node, **is a reliable copy of the node's data, taken the instant before the loss has occurred**. Anything less than this means an high probability of loss of funds.
 
-For the official explanation on the penalty transaction, please find here the [official definition in the protocol documentation](https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md#penalty-transaction).
+For the official explanation on the penalty transaction, please find here the [official definition in the protocol documentation][penalty transaction].
 
 For a detailed report on how often these type of transaction occurs, please refers to the good [bitmex research report on the topic](https://blog.bitmex.com/lightning-network-justice/).
 
 ## The solution
 
-All the developers working on Lightning Network have over these years, tried to find a solution to this problem but the bitter reality is that the most promising  [solution](https://blockstream.com/2018/04/30/en-eltoo-next-lightning/) would require some non trivial change at the base layer that is still under discussion.
+All the developers working on Lightning Network have  tried to find a solution to this problem, but the reality is that the most promising  [solution](https://blockstream.com/2018/04/30/en-eltoo-next-lightning/) would require some non trivial change at the base layer that is still under discussion.
 
 In the meanwhile, the team behind c-lightning, the modular implementation of the protocol written in c, has found an architectural solution which is the object of the present guide.
  
 ## The choice of C-lightning
 
-C-lightning characterizes itself as the most modular and lean solution in Lightning Network development. It follows strictly all the lessons learned by its developers, in the Linux operating system environment.
-The modular composition of the Linux architecture, in which every small component has a role and integrates itself with the rest of the components, finds its expression in c-lightning integration with the manual system and the plugin architecture to which is delegated the major part of the functionalities, of the innovation and of the feature enrichment.
+C-lightning characterizes itself as the most modular and lean solution in Lightning Network development. It follows strictly all the lessons learned by its developers in the Linux operating system environment.
+C-lightning is made of small components that integrates with each other and with the OS.
 
 Following this developing philosophy, the team has chosen not to directly address the problem, but to give the user the tools to build his own solution best fitted for his own environment and needs.
 
-One of the developers of c-lightning has detached the engine from the backend relational database designated to host all the application data. The reason is that relational databases have managed mission-critical data for more than 30 years now and have developed distinctive technique that a single program would never be capable to compare with and the effort would never worth it. Also it wouldn't be so well reviewed and tested.
+The developers has detached the node engine from the backend relational database designated to host all the application data. The reason is that relational databases have managed mission-critical data for more than 30 years now and have developed distinctive techniques that a single program would hardly be capable to compare with. Also it wouldn't be so well reviewed and tested in other mission critical environments.
 
-The first database that was chosen for its solidity as a possible backend of c-lightning has been PostgresQL. 
+The first database that was chosen for its robustness as a possible backend of c-lightning is PostgresQL. 
 
 The object of this guide is to lead you in setting up c-lightning with PostgresQL as its backend and to ensure that the database has a mechanism of replication which prevents the system from the loss of the critical data of the node.
 
-What follows is one of the possible solution to data availability which can be adopted by a node owner who has at least two physical machine available.
+What follows is a possible solution to data availability which can be adopted by a node owner, who has at least two physical machine available on the same LAN.
 
 ## The steps to secure c-lightning data with PostgresQL
 
 There multiple ways you can ensure [high availability] to a postgresQL database.
 
-This document focuses on synchronous *[streaming replication]* with a fallback with *[WAL shipping]* AKA *warm standby*.
-We choose this solution because it supports syncronous replication and low administration overhead compared to some other replication solutions and low performance load on the master: 
+This document focuses on synchronous *[streaming replication]* with a fallback on *[WAL shipping]* AKA *warm standby*.
+This solution has been chosen because it supports syncronous replication and low administration overhead compared to some other replication solutions and low performance load on the master: 
 
 *"meaning that a data-modifying transaction is not considered committed until all servers have committed the transaction. This guarantees that a failover will not lose any data and that all load-balanced servers will return consistent results no matter which server is queried."* (https://www.postgresql.org/docs/12/different-replication-solutions.html)
 
-Due to the way *punitive transactions* work in Lightning Network we cannot loose any data. the chosen solution also allow to restart the standby server immediatly, provided it has a c-lightning installation sleeping connected to the database but for now we focus in preserving just the data. [Reliability] is a serious and multi-layered problem <sup id="a1">[1](#f1)</sup>.
+Due to the way *punitive transactions* work in Lightning Network we cannot loose any data. the chosen solution also allow to restart the standby server immediatly, provided it has a c-lightning installation sleeping connected to the database but for now we focus in just preserving the data. [Reliability] is a serious and multi-layered problem <sup id="a1">[1](#f1)</sup>.
 
 *This brings us to an important warning: I have no experience in mission critical application and, as stated above, [reliability] is a complex issue. Many things can go wrong from cache to non ECC memory, Operative systems particularities, etc. The article linked cover a large part of things to take care of and this guide can only refers to resources more deep into the matter<sup id="a2">[2](#f2)</sup>.
 
 The streaming replication solution has these steps:
 
-1. Adopt PostgresQL as the node backend
-2. Prepare a standby server for the node's database
+1. Install PostgresQL on two machines on the same LAN
+2. Adopt PostgresQL as the database backend for the node
 3. Prepare a shared resource on the standby server
-4. Set up reliability of the database through WAL shipping on the standby server
-5. Set up the reliability of the data through *[synchronous data streaming]* between the two servers
+4. Set up [high availability] of the database through WAL shipping on the standby server
+5. Set up the [high availability] the data through *[synchronous streaming replication]* between the two servers
 
-### Adopt PostgresQL as the node backend
+### Install PostgresQL on two machines on the same LAN
 
-Install PostgresQL on the first and on the second machine.
-this guide is based on version 12. This version has had a non trivial change [in the way the restore operation is done for replication](https://www.postgresql.org/docs/release/12.0/),  so it is better to upgrade to it.
+For the purpose of the guide, Let's suppose we have two Linux machine on the same LAN:
+One Master Server where we will run our c-lightning node and one Standby server which will have an up-to-date copy of our node's data in case the Master server suffers a crash.
+
+our machines have this IP address:
+* Master server 192.168.0.5
+* Standby server 192.168.0.6
+
+this guide is based on version 12. This version has had a non trivial change [in the way the restore operation is done for replication][release notes for v.12],  so it is better to upgrade to it.
 
 #### Download and install ver.12.x on both machine
 
 The type of availability policy we have choosen requires that the two machine have the same major version.
 Follow the instructions in https://www.postgresql.org/download/ for your system on both machines.
 
-To test the installation on Linux you can follow this simple steps:
+To test the installation on Linux you can follow this simple steps on both machine:
 ```
-sudo -i -u postgres
-psql
-select version();
+$ sudo -i -u postgres
+$ psql
+$ select version();
 ```
 You should obtain one row of the database with the current version and some informations about the system it is running on.
+
 Please note that you have to login interactively as the user postgres, because you haven't yet assigned any role to your usual user. We can live with it.
 An other important step is to change postgres password and to write it in your favourite password manager.
 
@@ -86,13 +91,9 @@ psql
 postgres=# \password
 \q
 ```
+### 2. Adopt PostgresQL as the database backend for the node
 
-For the purpose of this article we will call:
-* the first machine the **master** and it will be the one with the running node.
-* the second machine the **Standby server**. 
-
-It is possible to adopt postgresQL [migrating the data in your existing sqlite database to postgresQL](https://github.com/fiatjaf/mcldsp). This guide will assume that a new node is started from scatch. 
-
+This guide will assume that a new node is created from scatch<sup id="a3">[3](#f3)</sup>.
 #### Create lightningd database into postgresQL
 
 When you connect your node a database should be present a database for lightning should be present (empty).
@@ -102,20 +103,23 @@ createuser --createdb --pwprompt --replication lightningusr # create user lightn
 createdb -O lightningusr lightningdb                        # create database lightningdb
 exit
 ```
-#### Install c-lightning
-[Here](https://github.com/ElementsProject/lightning) the istructions.
+Please do this on both on master and standby servers.
+
+#### Install c-lightning on the master server
+[Here][c-lightning] the istructions.
 
 #### Connect to the database
-The strings to connect to a postgresQL are [well documented](https://www.postgresql.org/docs/12/libpq-connect.html#LIBQ-CONNSTRING). 
+The strings to connect to a postgresQL are [well documented][postgres connection strings]. 
 It is better to try to launch a simple command so when the node starts we have already tested the connection.
+
 ```
 psql -U lightningusr --host=localhost --port=5432 "dbname=postgres" -t -c "SELECT version();"
 ```
 If you see the version in the replay then you can add this line to c-lightning configuration file:
 ```
-wallet=postgres://lightningusr:<passwordAssignedTolightningusr>@localhost:5432/lightningdb
+wallet=postgres://lightningusr:<password assigned to lightningusr>@localhost:5432/lightningdb
 ```
-remember to substitute `<passwordAssignedTolightningusr>` with the actual password you have assigned to lightningusr.
+remember to substitute `<password assigned to lightningusr>` with the actual password you have assigned to lightningusr.
 
 If you prefer to run an explicative command line instead, add 
 ```
@@ -123,7 +127,7 @@ If you prefer to run an explicative command line instead, add
 ```
 to the `lightningd` command.
 
-When the server starts, even looking close to the log, there's no way to guess if `lightningd`is effectively using postgresQL as its backend.
+When the server starts, even looking close to the log, there's no way to guess if `lightningd` is effectively using postgresQL as its backend.
 Please wait 20 minutes than try:
 ```
 psql -U lightningusr --host=localhost --port=5432 "dbname=lightningdb" -t -c "SELECT max(height) from blocks;"
@@ -146,7 +150,7 @@ It should be noted that the WAL file contains 16Mb of changes and that we will b
 
 This is NOT obviuously what we want to ensure the reliability of our node's channel data. We implement this method just because it used by *[streaming replication]* has a fallback system.
 
-####Prepare a standby server for the node's database
+#### Prepare a standby server for the node's database
 
 Now it is time to work on the *standby server* which is not required to be running the same OS than the master.
 On this machine is higly suggested to install the major version of postgresQL as the master.
@@ -159,9 +163,6 @@ The result MUST be that you have the possibility of archiving the WAL files on t
 For we don't want to sacrifice too much in terms of latency, it is better to have master and server on the same LAN so we will use a shared NFS resource for the scope.
 we will use NFS because it easy to set up and it allows to check for file presence through shell, etc.
 
-Let's suppose our machines have this IP address:
-* Master server 192.168.0.5
-* Standby server 192.168.0.6
 
 On the standby machine create a file /etc/exports with this content:
 ```
@@ -175,7 +176,7 @@ Where:
 ```
 sudo systemctl restart nfs-kernel-server
 ```
-We skip the firewall part of the [NFS tutoria] because we assume the two server being on the same network.
+We skip the firewall part of the [NFS tutoria] because we assume the two servers being on the same network.
 
 On the **master machine** you will have to mount the shared directory.
 
@@ -258,7 +259,7 @@ cluster_name = 'lightningd'
 #### Setting Up a Standby Server
 #### Prepare standby server for logshipping
 
-If you're setting up the standby server for high availability purposes, set up WAL archiving, connections and authentication like the Master server, because the standby server will work as a Master server after failover<sup id="a3">[3](#f3)</sup>.
+If you're setting up the standby server for high availability purposes, set up WAL archiving, connections and authentication like the Master server, because the standby server will work as a Master server after failover<sup id="a4">[4](#f4)</sup>.
 
 Open `/etc/postgresql/12/main/postgresql.conf`on the standby server and set the following parameters:
 
@@ -369,6 +370,7 @@ You already prepared everything ALSO for [streaming replication] at this point. 
 
 * You have set `primary_conninfo`on the **standby server**
 * You have modified the `pg_hba.conf` file on **Master server**
+It would be opportune to read also the detailed guide on [replication] for fine tuning.
 
 #### Switch to Synchronous [streaming replication]
 
@@ -417,14 +419,24 @@ reply_time       | 2020-04-19 21:44:40.045909+02
 
 <a name="f2">2</a>: log shipping might be able to be skipped. If you try it, please let us know so we can update this section. [↩](#a2)
 
-<a name="f3">3</a>: I think that you can prepare ONE ONLY postgresql.conf file in which you set all the parameters for the master AND the standby server. In this way you can just prepare one machine (the master) and let the restore command do the job of building a postgres.auto.conf file that can be used after being copied in `/etc/postgresql/12/main/postgresql.conf`.
-I cannot test this because my standby server is on a different OS and the cluster data directory is not the same. Maybe someone could try and contribute...;) [↩](#a3)
+<a name="f3">3</a>It is possible to adopt postgresQL [migrating the data in your existing sqlite database to postgresQL][sqlite postgres migration]. [↩](#a3)
+
+<a name="f4">4</a>: I think that you can prepare ONE ONLY postgresql.conf file in which you set all the parameters for the master AND the standby server. In this way you can just prepare one machine (the master) and let the restore command do the job of building a postgres.auto.conf file that can be used after being copied in `/etc/postgresql/12/main/postgresql.conf`.
+I cannot test this because my standby server is on a different OS and the cluster data directory is not the same. Maybe someone could try and contribute...;) [↩](#a4)
 
 [WAL shipping]: https://www.postgresql.org/docs/12/warm-standby.html#WARM-STANDBY
 [streaming replication]: https://www.postgresql.org/docs/12/warm-standby.html#STREAMING-REPLICATION
+[synchronous streaming replication]: https://www.postgresql.org/docs/12/warm-standby.html#SYNCHRONOUS-REPLICATION
+[replication]: https://www.postgresql.org/docs/12/runtime-config-replication.html
 [Reliability]: https://www.postgresql.org/docs/12/wal-reliability.html
 [high availability]: https://www.postgresql.org/docs/12/different-replication-solutions.html
 [logical replication]: https://www.postgresql.org/docs/12/logical-replication.html
+[release notes for v.12]: https://www.postgresql.org/docs/release/12.0/
+[sqlite postgres migration]: https://github.com/fiatjaf/mcldsp
+[postgres connection strings]: https://www.postgresql.org/docs/12/libpq-connect.html#LIBQ-CONNSTRING
+[c-lightning]: https://github.com/ElementsProject/lightning
 [NFS tutorial]: https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-18-04
 [restore]: https://www.postgresql.org/docs/12/continuous-archiving.html#BACKUP-PITR-RECOVERY
-
+[Lightning Network]: https://bitcoinmagazine.com/articles/understanding-the-lightning-network-part-building-a-bidirectional-payment-channel-1464710791
+[penalty transaction]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md#penalty-transaction
+[Lightning Network RFC]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md
