@@ -31,7 +31,7 @@ Following this developing philosophy, the team has chosen not to directly addres
 
 The developers has detached the node engine from the backend relational database designated to host all the application data. The reason is that relational databases have managed mission-critical data for more than 30 years now and have developed distinctive techniques that a single program would hardly be capable to compare with. Also it wouldn't be so well reviewed and tested in other mission critical environments.
 
-The first database that was chosen for its robustness as a possible backend of c-lightning is PostgresQL. 
+The first database that was chosen for its robustness as a possible backend of c-lightning is PostgresQL.
 
 The object of this guide is to lead you in setting up c-lightning with PostgresQL as its backend and to ensure that the database has a mechanism of replication which prevents the system from the loss of the critical data of the node.
 
@@ -62,7 +62,8 @@ The streaming replication solution has these steps:
 For the purpose of the guide, Let's suppose we have two Linux machine on the same LAN:
 One Master Server where we will run our c-lightning node and one Standby server which will have an up-to-date copy of our node's data in case the Master server suffers a crash.
 
-our machines have this IP address:
+Our machines have this IP address:
+
 * Master server 192.168.0.5
 * Standby server 192.168.0.6
 
@@ -78,8 +79,8 @@ To test the installation on Linux you can follow this simple steps on both machi
 ```bash
 sudo -i -u postgres
 
-$ psql
-$ select version();
+psql
+select version();
 ```
 
 You should obtain one row of the database with the current version and some informations about the system it is running on.
@@ -295,6 +296,7 @@ cluster_name = 'lightningd'
 ```
 
 #### Setting Up a Standby Server
+
 #### Prepare standby server for logshipping
 
 If you're setting up the standby server for high availability purposes, set up WAL archiving, connections and authentication like the Master server, because the standby server will work as a Master server after failover<sup id="a4">[4](#f4)</sup>.
@@ -423,6 +425,37 @@ You already prepared everything ALSO for [streaming replication] at this point. 
 * You have set `primary_conninfo`on the **standby server**
 * You have modified the `pg_hba.conf` file on **Master server**
 It would be opportune to read also the detailed guide on [replication] for fine tuning.
+
+Restart the server on master:
+
+```bash
+sudo systemctl stop lightningd
+sudo systemctl stop postgresql
+sudo systemctl start postgresql
+```
+
+Check in the log for errors or for the fact that there is a streaming replication ongoing. It should be something like:
+
+```bash
+tail /usr/local/var/log/postgres.log
+
+...
+2020-04-21 14:22:15.452 CEST [67449] LOG:  started streaming WAL from primary at 5/D3000000 on timeline 1
+```
+
+Restart the server on standby:
+
+```bash
+sudo systemctl stop postgresql
+sudo systemctl start postgresql
+```
+
+```bash
+tail /usr/local/var/log/postgres.log
+
+...
+2020-04-21 14:22:15.460 CEST [32305] postgres@[unknown] LOG:  The standby "lightningd" is now an asynchronous standby with priority 1
+```
 
 #### Switch to Synchronous [streaming replication]
 
