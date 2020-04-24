@@ -503,9 +503,11 @@ reply_time       | 2020-04-19 21:44:40.045909+02
 
 ## Footnotes
 
-<a name="f1">1</a>: Probably [logical replication] could also be an alternative to streaming replication. It focuses on just one database but it presumes an existing *replication identity* in every data object, which is not possible to assume now and for the future for `lightningd` database. [↩](#a1) 
+<a name="f1">1</a>: Probably [logical replication] could also be an alternative to streaming replication. It focuses on just one database but it presumes an existing *replication identity* in every data object, which is not possible to assume now and for the future for `lightningd` database. [↩](#a1)
 
-<a name="f2">2</a>: log shipping might be able to be skipped. If you try it, please let us know so we can update this section. [↩](#a2)
+<a name="f2">2</a>: log shipping might be able to be skipped. If you try it, please let us know so we can update this section.
+It should also be simple, according to this [HA mini-guide] (please read also the good [HA presentation] cited).
+Please consider that the article has been written before version 12 which has dropped the `restore.conf` file. Now everything is in the `postgresql.conf` file and there is the new `standby.signal` signaling file. [↩](#a2)
 
 <a name="f3">3</a>It is possible to adopt postgresQL [migrating the data in your existing sqlite database to postgresQL][sqlite postgres migration]. [↩](#a3)
 
@@ -518,6 +520,8 @@ I cannot test this because my standby server is on a different OS and the cluste
 [replication]: https://www.postgresql.org/docs/12/runtime-config-replication.html
 [Reliability]: https://www.postgresql.org/docs/12/wal-reliability.html
 [high availability]: https://www.postgresql.org/docs/12/different-replication-solutions.html
+[HA miniguide]: https://scalegrid.io/blog/getting-started-with-postgresql-streaming-replication/
+[HA presentation]: https://scalegrid.io/blog/getting-started-with-postgresql-streaming-replication/
 [logical replication]: https://www.postgresql.org/docs/12/logical-replication.html
 [release notes for v.12]: https://www.postgresql.org/docs/release/12.0/
 [sqlite postgres migration]: https://github.com/fiatjaf/mcldsp
