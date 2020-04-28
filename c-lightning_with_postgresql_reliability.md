@@ -342,3 +342,4 @@ Please consider that the article has been written before version 12 which has dr
 [penalty transaction]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md#penalty-transaction
 [Lightning Network RFC]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md
 [wireguard]: https://www.wireguard.com/
+
