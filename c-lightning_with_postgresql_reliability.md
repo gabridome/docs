@@ -1,5 +1,7 @@
 # Securing C-lightning funds with PostgresQL reliability capabilities
 
+*This is a new version of the guide much simpler and more straight to the point. If you need to refer to the old guide dealing with WAL shipping + streaming, please refer to [this branch][WAL+streaming]*.
+
 This article assumes a good knowledge of how Lightning Network works. For a better understanding there are good [articles][Lightning Network] or the [Lightning Network RFC].
 
 ## The problem
@@ -317,6 +319,7 @@ Please consider that the article has been written before version 12 which has dr
 
 <a name="f3">3</a>: It is possible to adopt postgresQL [migrating the data in your existing sqlite database to postgresQL][sqlite postgres migration]. [↩](#a3)
 
+[WAL+streaming]: https://github.com/gabridome/docs/blob/WAL+streaming/c-lightning_with_postgresql_reliability.md
 [PostgrQL]: https://www.postgresql.org/
 [eltoo]: https://blockstream.com/2018/04/30/en-eltoo-next-lightning/
 [WAL shipping]: https://www.postgresql.org/docs/12/warm-standby.html#WARM-STANDBY
