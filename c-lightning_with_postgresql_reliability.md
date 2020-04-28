@@ -305,7 +305,7 @@ Open `/etc/postgresql/12/main/postgresql.conf`on the standby server and set the 
 
 ```bash
 restore_command = 'cp /home/bitcoin/wals/%f %p'  
-archive_cleanup_command = '/usr/local/bin/pg_archivecleanup /home/bitcoin/backup.master/wals %r' 
+archive_cleanup_command = '/usr/local/bin/pg_archivecleanup /home/bitcoin/master.backup/wals %r' 
 primary_conninfo = 'host=192.168.0.5 port=5432 user=lightningusr password=<password of lightningusr> application_name=lightningd dbname=replication'    
 primary_slot_name = 'node_a_slot' # https://www.postgresql.org/docs/12/warm-standby.html#STREAMING-REPLICATION-SLOTS
 ```
