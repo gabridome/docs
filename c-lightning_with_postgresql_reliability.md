@@ -61,9 +61,9 @@ The streaming replication solution has these steps:
 2. Adopt PostgresQL as the database backend for the node
 3. Set up the [high availability] the data through *[synchronous streaming replication]* between the two servers
 
-### 1. Install PostgresQL on two machines on the same LAN<sup id="a2">[2](#f2)</sup>
+### 1. Install PostgresQL on two machines on the same LAN
 
-For the purpose of the guide, Let's suppose we have two Linux machine on the same LAN:
+For the purpose of the guide, Let's suppose we have two Linux machine on the same LAN<sup id="a2">[2](#f2)</sup>:
 One Master Server where we will run our c-lightning node and one Standby server which will have an up-to-date copy of our node's data in case the Master server suffers a crash.
 
 Our machines have this IP address:
@@ -96,6 +96,7 @@ An other important step is to change postgres password and to write it in your f
 sudo -i -u postgres
 psql
 postgres=# \password
+# remember to take note of your password.
 \q
 ```
 
@@ -116,11 +117,27 @@ createdb -O lightningusr lightningdb                        # create database li
 exit
 ```
 
+Note: the new user is not a *superuser*, this means that some query and commands we will use from remote will still need 
+`postgres` as user and an appropriate entry in the `pg_hba.conf`file (see below).
+
 Please do this on both on master and standby servers.
 
 #### Install c-lightning on the master server
 
 [Here][c-lightning] the istructions.
+
+#### take a backup of your "not so dynamic data"
+
+The seed and the relevant configuration files of the c-lightning wallet reside in the `lightning-dir` directory:
+
+```bash
+lightning-cli listconfigs lightning-dir
+{
+   "lightning-dir": "/home/bitcoin/.lightning"
+}
+```
+
+It is wise to take a backup of the whole directory and to refresh it whenever some relevant parameter is changed on the master.
 
 #### Connect to the database
 
@@ -165,7 +182,9 @@ sudo systemctl stop postgresql
 
 ```
 
-Find your `pg_hba.conf` file and add the following line:
+#### Allow connections from the standby server to the master
+
+Find your `pg_hba.conf` file and add the following lines:
 
 ```bash
 sudo nano /etc/postgresql/12/main/pg_hba.conf
@@ -173,11 +192,14 @@ sudo nano /etc/postgresql/12/main/pg_hba.conf
 
 ```bash
 host    replication     lightningusr     192.168.0.6/32           md5
+host    postgres     postgres     192.168.0.6/32           md5 # for dyangnostic purposes
 ```
 
 It means that the master server will accept TCP connections to the metadatabase called `replication` from the user authenticated as lightningusr when the request comes from the IP 192.168.0.6/32 with the authentication method md5.
 
-Create a replication slot
+#### Create a [replication slot]:
+
+Replication slots ensures WAL records are not deleted on the master before any relevant standby server has received them.
 
 ```bash
 sudo -i -u postgres
@@ -196,7 +218,7 @@ postgres=# SELECT slot_name, slot_type, active FROM pg_replication_slots;
 exit
 ```
 
-Open the  postgresQL.conf file on **Master** and ensure that
+Open the `postgresql.conf` file on **Master** and ensure that
 
 ```bash
 listen_addresses = 'localhost,192.168.0.5' # required for streaming replication
@@ -246,7 +268,7 @@ Now start postgresql on the master and on the client.
 sudo systemctl start postgresql
 ```
 
-On `postgresql.log` file on the standby server, you can see similar to:
+On `postgresql.log` file on the standby server, you can see something similar to:
 
 ```bash
 tail /usr/local/var/log/postgres.log
@@ -265,7 +287,7 @@ In the `postgresql.log` file on the master you should see in the lines:
 
 ```bash
 tail /usr/local/var/log/postgres.log
-2020-04-25 21:12:14.252 CEST [31476] postgres@[sconosciuto] LOG: standby "lightningd" is now synchronous standby with priority 1
+2020-04-25 21:12:14.252 CEST [31476] postgres@[unknown] LOG: standby "lightningd" is now synchronous standby with priority 1
 ```
 
 In Every moment, you can use this command on the **master** to check the state of the replication.
@@ -297,6 +319,7 @@ reply_time       | 2020-04-19 21:44:40.045909+02
 ```
 
 Note in particular that the parameter `sync_state` has the value "sync".
+Also, it could happen that the standby server is behind in behind the present state and is catching up reading the old WAL records from the master. In this case the value of the `state` parameter is "`catchup`".
 
 It would be opportune to read also the detailed guide on [replication] for fine tuning.
 
@@ -310,11 +333,7 @@ sudo systemctl start lightningd
 
 <a name="f1">1</a>: Probably [logical replication] could also be an alternative to streaming replication. It focuses on just one database but it presumes an existing *replication identity* in every data object, which is not possible to assume now and for the future for `lightningd` database. [↩](#a1)
 
-<a name="f2">2</a>: log shipping might be able to be skipped. If you try it, please let us know so we can update this section.
-It should also be simple, according to this [HA mini-guide] (please read also the good [HA presentation] cited).
-Please consider that the article has been written before version 12 which has dropped the `restore.conf` file. Now everything is in the `postgresql.conf` file and there is the new `standby.signal` signaling file. [↩](#a2)
-
-<a name="f2">2</a>: To be on the same LAN is not great in terms of HA. We have chosen to focus on this configuration because, in synchronous replication, every transaction in the database must wait the standby server to confirm at least it has written it in the cache and this pose a bad impact in performances, if the machine is in a remote location. Maybe a setup with [wireguard] though could allow an acceptable setup for a lightning node.
+<a name="f2">2</a>: To be on the same LAN is not great in terms of HA. We have chosen to focus on this configuration because, in synchronous replication, every transaction in the database must wait for the standby server to confirm at least it has written it in the cache and this pose a bad impact on performances, if the machine is in a remote location. Maybe a setup with [wireguard] though could allow an acceptable setup for a lightning node.
 [↩](#a2)
 
 <a name="f3">3</a>: It is possible to adopt postgresQL [migrating the data in your existing sqlite database to postgresQL][sqlite postgres migration]. [↩](#a3)
@@ -324,6 +343,7 @@ Please consider that the article has been written before version 12 which has dr
 [eltoo]: https://blockstream.com/2018/04/30/en-eltoo-next-lightning/
 [WAL shipping]: https://www.postgresql.org/docs/12/warm-standby.html#WARM-STANDBY
 [streaming replication]: https://www.postgresql.org/docs/12/warm-standby.html#STREAMING-REPLICATION
+[replication slot]: https://www.postgresql.org/docs/12/warm-standby.html#STREAMING-REPLICATION-SLOTS
 [synchronous streaming replication]: https://www.postgresql.org/docs/12/warm-standby.html#SYNCHRONOUS-REPLICATION
 [replication]: https://www.postgresql.org/docs/12/runtime-config-replication.html
 [Reliability]: https://www.postgresql.org/docs/12/wal-reliability.html
