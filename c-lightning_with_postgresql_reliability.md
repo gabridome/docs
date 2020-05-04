@@ -328,6 +328,22 @@ Now you can start the `lightningd` on master:
 ```bash
 sudo systemctl start lightningd
 ```
+## Failover
+
+It is recommended to read the official specific chapter on PostgresQL guide on the important [topic][failover].
+TL:D; please at least follow these rules:
+
+1. The standby server must become the master.
+2. The old master **must not** be made operational again with the old configuration.
+3. You have to setup a new standby server
+
+Also: you have to install c-lightning on the new master and restore the `lightning-dir` (default ~/.lightning) directory you have saved from the master and modify the config parameters relative to he network presence to reflect the addresses of the standby machine (now promoted master). Here below are a list of configuration parameters you should carefully consider in bringing the new master online as the new lightning node:
+
+* `addr` shoud be relevant only if your machine was exposed to the network without NAT, so not relevant in our example.
+* `bind-addr=localhost` should be ok but to be contacted via NAT you must specify the LAN address. In our example 192.168.0.6.
+* `announce-addr=` Set an IP address (v4 or v6) or .onion v2/v3 to announce, but not listen on. The new lightning node may appear on the network with a different address from the previous but your peers will recognize it by the `node ID`, deterministically derived from the `hsm_secret` you restored from the old machine.
+
+If you were exposed to the network via Tor, obviously your new address is to be taken into account in the new configuration too.
 
 ## Footnotes
 
@@ -362,4 +378,4 @@ sudo systemctl start lightningd
 [penalty transaction]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md#penalty-transaction
 [Lightning Network RFC]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md
 [wireguard]: https://www.wireguard.com/
-
+[failover]: https://www.postgresql.org/docs/12/warm-standby-failover.html
