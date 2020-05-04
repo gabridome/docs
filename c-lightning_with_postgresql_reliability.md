@@ -20,7 +20,7 @@ For a detailed report on how often these type of transaction occurs, please refe
 
 ## The solution
 
-All the developers working on Lightning Network have  tried to find a solution to this problem, but the reality is that the most promising  [solution][eltoo] would require some non trivial change at the base layer that is still under discussion.
+All the developers working on Lightning Network have  tried to find a solution to this problem, for a summary of the different solution there is a [pretty exaustive presentation][backup solutions] but the reality is that the most promising  [solution][eltoo] would require some non trivial change at the base layer that is still under discussion.
 
 In the meanwhile, the team behind c-lightning, the modular implementation of the protocol written in c, has found an architectural solution which is the object of the present guide.
 
@@ -356,6 +356,7 @@ If you were exposed to the network via Tor, obviously your new address is to be 
 
 [WAL+streaming]: https://github.com/gabridome/docs/blob/WAL+streaming/c-lightning_with_postgresql_reliability.md
 [PostgrQL]: https://www.postgresql.org/
+[backup solutions]: https://youtu.be/kGQF3wtzr04?t=171
 [eltoo]: https://blockstream.com/2018/04/30/en-eltoo-next-lightning/
 [WAL shipping]: https://www.postgresql.org/docs/12/warm-standby.html#WARM-STANDBY
 [streaming replication]: https://www.postgresql.org/docs/12/warm-standby.html#STREAMING-REPLICATION
