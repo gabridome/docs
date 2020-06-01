@@ -370,6 +370,16 @@ Also: you have to install c-lightning on the new master and restore the `lightni
 
 If you were exposed to the network via Tor, obviously your new address is to be taken into account in the new configuration too.
 
+## Acknowledgments
+
+I would like to thank all the Bitcoin people I have known during this years. This document is a way to return what I received from them.
+
+Also in detail:
+
+* @cdecker for encouragement and tutoring
+
+* @TKone7 for the first, very valuable contribution.
+
 ## Footnotes
 
 <a name="f1">1</a>: Probably [logical replication] could also be an alternative to streaming replication. It focuses on just one database but it presumes an existing *replication identity* in every data object, which is not possible to assume now and for the future for `lightningd` database. [↩](#a1)
