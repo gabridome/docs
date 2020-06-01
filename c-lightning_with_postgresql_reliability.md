@@ -6,13 +6,13 @@ This article assumes a good knowledge of how Lightning Network works. For a bett
 
 ## The problem
 
-Every Lightning Network node must keep track of every *state* of each of his channels in every moment in order to preserve the integrity of the funds it manages. 
+Every Lightning Network node must keep track of every *state* of each of its channels in every moment in order to preserve the integrity of the funds it manages.
 
-If a node broadcast an old channel state and "force close" a channel, its peer have lag of time within which it has the right and will broadcast a [penalty transaction], spending the funds which whoud be destined to the node, to an address the peer instead control.
+If a node broadcast an old channel state and "force close" a channel, its peer have lag of time within which it has the right and will broadcast a [penalty transaction], spending the funds which would be destined to the node, to an address the peer instead control.
 
-This implies that if we loose the data regarding the channel state (due e.g. to a system failure) and we have a non perfectly up-to-date backup to restore from, it is really dangerous to force close any of our channel, because we cannot be sure to broadcast the latest valid state and we could loose our share of bitcoins in the channel.
+This implies that if we loose the data regarding the channel state (due e.g. to a system failure) and we have an outdated backup to restore from, it is really dangerous to force close any of our channels, because we cannot be sure to broadcast the latest valid state and we could lose our share of bitcoins in the channel.
 
-What it is really needed in case of data loss in the node, **is a reliable copy of the node's data, taken the instant before the loss has occurred**. Anything less than this means an high probability of loss of funds.
+What is really needed in case of data loss in the node, **is a reliable copy of the node's data, taken the instant before the loss has occurred**. Anything less than this means a high probability of loss of funds.
 
 For the official explanation on the penalty transaction, please find here the [official definition in the protocol documentation][penalty transaction].
 
@@ -20,7 +20,7 @@ For a detailed report on how often these type of transaction occurs, please refe
 
 ## The solution
 
-All the developers working on Lightning Network have  tried to find a solution to this problem, for a summary of the different solution there is a [pretty exaustive presentation][backup solutions] but the reality is that the most promising  [solution][eltoo] would require some non trivial change at the base layer that is still under discussion.
+All the developers working on Lightning Network have  tried to find solutions to this problem, for a summary of the different solutions there is a [pretty exaustive presentation][backup solutions] but the reality is that the most promising  [solution][eltoo] would require some non trivial change at the base layer that is still under discussion.
 
 In the meanwhile, the team behind c-lightning, the modular implementation of the protocol written in c, has found an architectural solution which is the object of the present guide.
 
@@ -31,7 +31,7 @@ C-lightning is made of small components that integrates with each other and with
 
 Following this developing philosophy, the team has chosen not to directly address the problem, but to give the user the tools to build his own solution best fitted for his own environment and needs.
 
-The developers has detached the node engine from the backend relational database designated to host all the application data. The reason is that relational databases have managed mission-critical data for more than 40 years now and have developed distinctive techniques that a single program would hardly be capable to compare with. Also it wouldn't be so well reviewed and tested in other mission critical environments.
+The developers have detached the node engine from the backend relational database designated to host all the application data. The reason is that relational databases have managed mission-critical data for more than 40 years now and have developed distinctive techniques that a single program would hardly be capable to compare with. Also it wouldn't be so well reviewed and tested in other mission critical environments.
 
 The first database that has been chosen for its robustness as a possible backend of c-lightning is [PostgresQL].
 
@@ -44,14 +44,14 @@ What follows is a possible solution to data availability which can be adopted by
 There multiple ways you can ensure [high availability] to a postgresQL database.
 
 This document focuses on synchronous *[streaming replication]*.
-This solution has been chosen because it supports syncronous replication and low administration overhead compared to some other replication solutions and low performance load on the master and on the standby server:
+This solution has been chosen because it supports synchronous replication and low administration overhead compared to some other replication solutions and low performance load on the master and on the standby server:
 
-Synchronous here means 
+Synchronous here means
 >*"that a data-modifying transaction is not considered committed until all servers have committed the transaction. This guarantees that a failover will not lose any data and that all load-balanced servers will return consistent results no matter which server is queried."* (https://www.postgresql.org/docs/12/different-replication-solutions.html)
 
-Due to the way *punitive transactions* work in Lightning Network we cannot loose any channel state in any moment. the chosen solution also could allow to restart the standby server immediatly, provided it has a  sleeping c-lightning installation connected to the database with a compatible configuration, but for now we focus in just preserving the data. 
+Due to the way *punitive transactions* work in Lightning Network we cannot loose any channel state in any moment. the chosen solution also could allow to restart the standby server immediately, provided it has a sleeping c-lightning installation connected to the database with a compatible configuration, but for now we focus in just preserving the data.
 
-[Reliability] is a serious and multi-layered problem <sup id="a1">[1](#f1)</sup> and this brings us to an important warning: 
+[Reliability] is a serious and multi-layered problem <sup id="a1">[1](#f1)</sup> and this brings us to an important warning:
 
 *I have no experience in mission critical application and, as stated above, [reliability] is a complex issue. Many things can go wrong from cache to non ECC memory, Operative systems particularities, etc. The article linked cover a large part of things to take care of and this guide can only refers to resources more deep into the matter.*
 
@@ -63,7 +63,7 @@ The streaming replication solution has these steps:
 
 ### 1. Install PostgresQL on two machines on the same LAN
 
-For the purpose of the guide, Let's suppose we have two Linux machine on the same LAN<sup id="a2">[2](#f2)</sup>:
+For the purpose of the guide, Let's suppose we have two Linux machines on the same LAN<sup id="a2">[2](#f2)</sup>:
 One Master Server where we will run our c-lightning node and one Standby server which will have an up-to-date copy of our node's data in case the Master server suffers a crash.
 
 Our machines have this IP address:
@@ -71,11 +71,11 @@ Our machines have this IP address:
 * Master server 192.168.0.5
 * Standby server 192.168.0.6
 
-this guide is based on version 12. This version has had a non trivial change [in the way the restore operation is done for replication][release notes for v.12],  so it is better to upgrade to it.
+This guide is based on version 12. This version has had a non trivial change [in the way the restore operation is done for replication][release notes for v.12],  so it is better to upgrade to it.
 
 #### Download and install ver.12.x on both machine
 
-The type of availability policy we have choosen requires that the two machine have the same major version.
+The type of availability policy we have chosen requires that the two machine have the same major version.
 Follow the instructions in https://www.postgresql.org/download/ for your system on both machines.
 
 To test the installation on Linux you can follow this simple steps on both machine:
@@ -90,7 +90,7 @@ select version();
 You should obtain one row of the database with the current version and some information about the system it is running on.
 
 Please note that you have to login interactively as the user postgres, because you haven't yet assigned any role to your usual user. We can live with it.
-An other important step is to change postgres password and to write it in your favourite password manager.
+An other important step is to change postgres password and to write it in your favorite password manager.
 
 ```bash
 sudo -i -u postgres
@@ -117,16 +117,16 @@ createdb -O lightningusr lightningdb                        # create database li
 exit
 ```
 
-Note: the new user is not a *superuser*, this means that some query and commands we will use from remote will still need 
+Note: the new user is not a *superuser*, this means that some query and commands we will use from remote will still need
 `postgres` as user and an appropriate entry in the `pg_hba.conf`file (see below).
 
-Please do this on both on master and standby servers.
+Please do this on both on **master** and **standby** servers.
 
 #### Install c-lightning on the master server
 
 [Here][c-lightning] the istructions.
 
-#### take a backup of your "not so dynamic data"
+#### Take a backup of your "not so dynamic data"
 
 The seed and the relevant configuration files of the c-lightning wallet reside in the `lightning-dir` directory:
 
@@ -141,7 +141,7 @@ It is wise to take a backup of the whole directory and to refresh it whenever so
 
 #### Connect to the database
 
-The strings to connect to a postgresQL are [well documented][postgres connection strings]. 
+The strings to connect to a postgresQL are [well documented][postgres connection strings].
 
 It is better to try to launch a simple command so when the node starts we have already tested the connection.
 
@@ -161,7 +161,7 @@ remember to substitute `<password assigned to lightningusr>` with the actual pas
 If you prefer to run an explicative command line instead, add to the `lightningd` command.
 
 ```bash
---wallet=wallet=postgres://lightningusr:<password assigned to lightningusr>@localhost:5432/lightningdb
+--wallet=postgres://lightningusr:<password assigned to lightningusr>@localhost:5432/lightningdb
 ```
 
 When the server starts, even looking close at the log, there's no way to guess if `lightningd` is effectively using postgresQL as its backend.
@@ -171,7 +171,7 @@ Please wait 20 minutes than try:
 psql -U lightningusr --host=localhost --port=5432 "dbname=lightningdb" -t -c "SELECT max(height) from blocks;"
 ```
 
-This should tell you the height of the last block as it results into postgresQL. if the number corresponds with the last block in the network you can see in your node, then you know that there's a new table (`blocks`) inside the database `lightningdb` and it is up-to-date.
+This should tell you the height of the last block as it results into postgresQL. If the number corresponds with the last block in the network you can see in your node, then you know that there's a new table (`blocks`) inside the database `lightningdb` and it is up-to-date.
 You can guess `lightningd` is using postgresQL as its backend.
 
 Stop lightningd and postgresql daemons:
@@ -192,14 +192,18 @@ sudo nano /etc/postgresql/12/main/pg_hba.conf
 
 ```bash
 host    replication     lightningusr     192.168.0.6/32           md5
-host    postgres     postgres     192.168.0.6/32           md5 # for dyangnostic purposes
+host    postgres        postgres         192.168.0.6/32           md5 # for dyangnostic purposes
 ```
 
 It means that the master server will accept TCP connections to the metadatabase called `replication` from the user authenticated as lightningusr when the request comes from the IP 192.168.0.6/32 with the authentication method md5.
 
+For changes to take place and to continue with the next step, restart the PostgresQL service on the master server.
+```bash
+sudo systemctl restart postgresql
+```
 #### Create a [replication slot]:
 
-Replication slots ensures WAL records are not deleted on the master before any relevant standby server has received them.
+Replication slots ensures WAL records are not deleted on the master before any relevant standby server has received them. Make sure the sql server is running and create the slot as follows:
 
 ```bash
 sudo -i -u postgres
@@ -210,7 +214,7 @@ postgres=# SELECT * FROM pg_create_physical_replication_slot('node_a_slot');
  node_a_slot |
 
 postgres=# SELECT slot_name, slot_type, active FROM pg_replication_slots;
-  slot_name  | slot_type | active 
+  slot_name  | slot_type | active
 -------------+-----------+--------
  node_a_slot | physical  | f
 (1 row)
@@ -218,7 +222,7 @@ postgres=# SELECT slot_name, slot_type, active FROM pg_replication_slots;
 exit
 ```
 
-Open the `postgresql.conf` file on **Master** and ensure that
+Open the `postgresql.conf` file on **Master** and set the following configuration.
 
 ```bash
 listen_addresses = 'localhost,192.168.0.5' # required for streaming replication
@@ -234,23 +238,32 @@ full_page_writes = on                   # gbd Ven  7 Feb 2020 10:58:33 CET https
 #### Setting Up a Standby Server for [streaming replication]
 
 ##### Make a first backup of the master on the standby server
+For your standby server to be able to track changes from the master it has to be put into the same initial state. This is done by performing a **base backup** from the master to the standby. Switch to the standby server to perform this.
+
+First, stop the server. This is necessary to use the slot during the first backup.
+```bash
+sudo systemctl stop postgresql
+```
+Make a safety copy of the old directory in case anything goes wrong:
+```bash
+mv /var/lib/postgresql/12/main/ /var/lib/postgresql/12/main.backup
+```
+Now, we clone the master onto the standby server and grant access to the postgres user.
 
 ```bash
-sudo systemctl stop postgresql # necessary to use the slot during the first backup
-mkdir /p $HOME/master.backup
-pg_basebackup -D /home/bitcoin/backup.cubi/initial_backup -l compressed -P -v -X stream -S 'node_a_slot' -F t -z  -d postgres://postgres:< password assigned to postgres >@10.2.206.136:5432
-cp -R  /var/lib/postgresql/12/main/* /tmp
-rm -R /var/lib/postgresql/12/main/*
-cd /var/lib/postgresql/12/main  # the main cluster data directory
-tar -zxvf /Users/Shared/backup.cubi/initial_backup/base.tar.gz
-cd pg_wal
-tar -zxvf /Users/Shared/backup.cubi/initial_backup/pg_wal.tar.gz
-touch standby.signal    # it is the signaling file that make the server behave as a standby one.
+pg_basebackup -h 192.168.0.5 -U postgres -D /var/lib/postgresql/12/main/ -P --password --slot node_a_slot
+# enter the password for user postgres when prompted
+sudo chown -R postgres:postgres /var/lib/postgresql/12/main
+
+```
+In order to tell the server that it should take the role of standby we create the following signal file (which can remain empty).
+```bash
+touch /var/lib/postgresql/12/main/standby.signal
 ```
 
-###### edit the `postgresQL.conf`on the standby server
+###### Edit the `postgresQL.conf`on the standby server
 
-open the file `postgresql.conf` and add anywhere (I suggest at the top):
+Open the file `postgresql.conf` and make sure to set the follwing configurations.
 
 ```bash
 primary_conninfo = 'host=192.168.0.5 port=5432 user=lightningusr password=< password assigned to lightningusr > application_name=lightningd dbname=replication'
@@ -260,7 +273,7 @@ hot_standby = off
 
 NOTE: One important setting is the `application_name` in the primary_conninfo parameter.
 
-**The `application_name` will make the Master server activate the synchronous replication. I must have the same value of the `synchronous_standby_names` parameter on the master server.**
+**The `application_name` will make the Master server activate the synchronous replication. It must have the same value of the `synchronous_standby_names` parameter on the master server.**
 
 Now start postgresql on the master and on the client.
 
@@ -314,7 +327,7 @@ write_lag        |
 flush_lag        |
 replay_lag       |
 sync_priority    | 1
-sync_state       | sync <<<<<<<< 
+sync_state       | sync <<<<<<<<
 reply_time       | 2020-04-19 21:44:40.045909+02
 ```
 
