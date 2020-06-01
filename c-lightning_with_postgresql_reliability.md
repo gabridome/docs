@@ -182,9 +182,11 @@ sudo systemctl stop postgresql
 
 ```
 
+### 3. Set up the [high availability] the data through *[synchronous streaming replication]* between the two servers
+
 #### Allow connections from the standby server to the master
 
-Find your `pg_hba.conf` file and add the following lines:
+On the Master server, find your `pg_hba.conf` file and add the following lines:
 
 ```bash
 sudo nano /etc/postgresql/12/main/pg_hba.conf
@@ -198,9 +200,11 @@ host    postgres        postgres         192.168.0.6/32           md5 # for dyan
 It means that the master server will accept TCP connections to the metadatabase called `replication` from the user authenticated as lightningusr when the request comes from the IP 192.168.0.6/32 with the authentication method md5.
 
 For changes to take place and to continue with the next step, restart the PostgresQL service on the master server.
+
 ```bash
 sudo systemctl restart postgresql
 ```
+
 #### Create a [replication slot]:
 
 Replication slots ensures WAL records are not deleted on the master before any relevant standby server has received them. Make sure the sql server is running and create the slot as follows:
@@ -235,19 +239,24 @@ synchronous_standby_names = 'lightningd'    # gbd Mar 28 Gen 2020 16:13:46 CET
 full_page_writes = on                   # gbd Ven  7 Feb 2020 10:58:33 CET https://www.postgresql.org/docs/12/app-pgbasebackup.html
 ```
 
-#### Setting Up a Standby Server for [streaming replication]
+#### Setting Up the Standby Server for [streaming replication]
 
 ##### Make a first backup of the master on the standby server
+
 For your standby server to be able to track changes from the master it has to be put into the same initial state. This is done by performing a **base backup** from the master to the standby. Switch to the standby server to perform this.
 
 First, stop the server. This is necessary to use the slot during the first backup.
+
 ```bash
 sudo systemctl stop postgresql
 ```
+
 Make a safety copy of the old directory in case anything goes wrong:
+
 ```bash
 mv /var/lib/postgresql/12/main/ /var/lib/postgresql/12/main.backup
 ```
+
 Now, we clone the master onto the standby server and grant access to the postgres user.
 
 ```bash
@@ -256,12 +265,14 @@ pg_basebackup -h 192.168.0.5 -U postgres -D /var/lib/postgresql/12/main/ -P --pa
 sudo chown -R postgres:postgres /var/lib/postgresql/12/main
 
 ```
+
 In order to tell the server that it should take the role of standby we create the following signal file (which can remain empty).
+
 ```bash
 touch /var/lib/postgresql/12/main/standby.signal
 ```
 
-###### Edit the `postgresQL.conf`on the standby server
+##### Edit the `postgresQL.conf`on the standby server
 
 Open the file `postgresql.conf` and make sure to set the follwing configurations.
 
@@ -341,6 +352,7 @@ Now you can start the `lightningd` on master:
 ```bash
 sudo systemctl start lightningd
 ```
+
 ## Failover
 
 It is recommended to read the official specific chapter on PostgresQL guide on the important [topic][failover].
