@@ -44,7 +44,7 @@ What follows is a possible solution to data availability which can be adopted by
 There multiple ways you can ensure [high availability] to a postgresQL database.
 
 This document focuses on synchronous *[streaming replication]*.
-This solution has been chosen because it supports synchronous replication and low administration overhead compared to some other replication solutions and low performance load on the master and on the standby server:
+This solution has been chosen because it supports synchronous replication and low administration overhead compared to some other replication solutions and low performance load on the primary and on the standby server:
 
 Synchronous here means
 >*"that a data-modifying transaction is not considered committed until all servers have committed the transaction. This guarantees that a failover will not lose any data and that all load-balanced servers will return consistent results no matter which server is queried."* (https://www.postgresql.org/docs/12/different-replication-solutions.html)
@@ -64,11 +64,11 @@ The streaming replication solution has these steps:
 ### 1. Install PostgresQL on two machines on the same LAN
 
 For the purpose of the guide, Let's suppose we have two Linux machines on the same LAN<sup id="a2">[2](#f2)</sup>:
-One Master Server where we will run our c-lightning node and one Standby server which will have an up-to-date copy of our node's data in case the Master server suffers a crash.
+One *primary* server where we will run our c-lightning node and one *standby* server which will have an up-to-date copy of our node's data in case the primary server suffers a crash.
 
 Our machines have this IP address:
 
-* Master server 192.168.0.5
+* primary server 192.168.0.5
 * Standby server 192.168.0.6
 
 This guide is based on version 12. This version has had a non trivial change [in the way the restore operation is done for replication][release notes for v.12],  so it is better to upgrade to it.
@@ -104,7 +104,7 @@ postgres=# \password
 
 This guide will assume that a new node is created from scatch<sup id="a3">[3](#f3)</sup>.
 
-We will work only **on the Master Server for the moment**.
+We will work only **on the primary server for the moment**.
 
 #### Create lightningd database and a user into postgresQL
 
@@ -120,9 +120,9 @@ exit
 Note: the new user is not a *superuser*, this means that some query and commands we will use from remote will still need
 `postgres` as user and an appropriate entry in the `pg_hba.conf`file (see below).
 
-Please do this on both on **master** and **standby** servers.
+Please do this on both on **primary** and **standby** servers.
 
-#### Install c-lightning on the master server
+#### Install c-lightning on the primary server
 
 [Here][c-lightning] the istructions.
 
@@ -137,7 +137,7 @@ lightning-cli listconfigs lightning-dir
 }
 ```
 
-It is wise to take a backup of the whole directory and to refresh it whenever some relevant parameter is changed on the master.
+It is wise to take a backup of the whole directory and to refresh it whenever some relevant parameter is changed on the primary server.
 
 #### Connect to the database
 
@@ -184,9 +184,9 @@ sudo systemctl stop postgresql
 
 ### 3. Set up the [high availability] the data through *[synchronous streaming replication]* between the two servers
 
-#### Allow connections from the standby server to the master
+#### Allow connections from the standby server to the primary
 
-On the Master server, find your `pg_hba.conf` file and add the following lines:
+On the primary server, find your `pg_hba.conf` file and add the following lines:
 
 ```bash
 sudo nano /etc/postgresql/12/main/pg_hba.conf
@@ -197,9 +197,9 @@ host    replication     lightningusr     192.168.0.6/32           md5
 host    postgres        postgres         192.168.0.6/32           md5 # for dyangnostic purposes
 ```
 
-It means that the master server will accept TCP connections to the metadatabase called `replication` from the user authenticated as lightningusr when the request comes from the IP 192.168.0.6/32 with the authentication method md5.
+It means that the primary server will accept TCP connections to the metadatabase called `replication` from the user authenticated as lightningusr when the request comes from the IP 192.168.0.6/32 with the authentication method md5.
 
-For changes to take place and to continue with the next step, restart the PostgresQL service on the master server.
+For changes to take place and to continue with the next step, restart the PostgresQL service on the primary server.
 
 ```bash
 sudo systemctl restart postgresql
@@ -207,7 +207,7 @@ sudo systemctl restart postgresql
 
 #### Create a [replication slot]:
 
-Replication slots ensures WAL records are not deleted on the master before any relevant standby server has received them. Make sure the sql server is running and create the slot as follows:
+Replication slots ensures WAL records are not deleted on the primary before any relevant standby server has received them. Make sure the sql server is running and create the slot as follows:
 
 ```bash
 sudo -i -u postgres
@@ -226,7 +226,7 @@ postgres=# SELECT slot_name, slot_type, active FROM pg_replication_slots;
 exit
 ```
 
-Open the `postgresql.conf` file on **Master** and set the following configuration.
+Open the `postgresql.conf` file on **primary** and set the following configuration.
 
 ```bash
 listen_addresses = 'localhost,192.168.0.5' # required for streaming replication
@@ -239,11 +239,11 @@ synchronous_standby_names = 'lightningd'    # gbd Mar 28 Gen 2020 16:13:46 CET
 full_page_writes = on                   # gbd Ven  7 Feb 2020 10:58:33 CET https://www.postgresql.org/docs/12/app-pgbasebackup.html
 ```
 
-#### Setting Up the Standby Server for [streaming replication]
+#### Setting Up the Standby server for [streaming replication]
 
-##### Make a first backup of the master on the standby server
+##### Make a first backup of the primary server on the standby server
 
-For your standby server to be able to track changes from the master it has to be put into the same initial state. This is done by performing a **base backup** from the master to the standby. Switch to the standby server to perform this.
+For your standby server to be able to track changes from the primary, it has to be put into the same initial state. This is done by performing a **base backup** from the primary server to the standby. Switch to the standby server to perform this.
 
 First, stop the server. This is necessary to use the slot during the first backup.
 
@@ -257,7 +257,7 @@ Make a safety copy of the old directory in case anything goes wrong:
 mv /var/lib/postgresql/12/main/ /var/lib/postgresql/12/main.backup
 ```
 
-Now, we clone the master onto the standby server and grant access to the postgres user.
+Now, we clone the primary onto the standby server and grant access to the postgres user.
 
 ```bash
 pg_basebackup -h 192.168.0.5 -U postgres -D /var/lib/postgresql/12/main/ -P --password --slot node_a_slot
@@ -284,9 +284,9 @@ hot_standby = off
 
 NOTE: One important setting is the `application_name` in the primary_conninfo parameter.
 
-**The `application_name` will make the Master server activate the synchronous replication. It must have the same value of the `synchronous_standby_names` parameter on the master server.**
+**The `application_name` will make the primary server activate the synchronous replication. It must have the same value of the `synchronous_standby_names` parameter on the primary server.**
 
-Now start postgresql on the master and on the client.
+Now start postgresql on the primary and on the standby server.
 
 ```bash
 sudo systemctl start postgresql
@@ -307,14 +307,14 @@ tail /usr/local/var/log/postgres.log
 2020-04-25 21:12:12.626 CEST [34770] LOG:  consistent recovery state reached at 6/3F000138
 ```
 
-In the `postgresql.log` file on the master you should see in the lines:
+In the `postgresql.log` file on the primary you should see in the lines:
 
 ```bash
 tail /usr/local/var/log/postgres.log
 2020-04-25 21:12:14.252 CEST [31476] postgres@[unknown] LOG: standby "lightningd" is now synchronous standby with priority 1
 ```
 
-In Every moment, you can use this command on the **master** to check the state of the replication.
+In Every moment, you can use this command on the **primary** to check the state of the replication.
 
 ```bash
 psql -U postgres --host=localhost --port=5432 "dbname=postgres" -x -c "SELECT * from pg_stat_replication;"
@@ -343,11 +343,11 @@ reply_time       | 2020-04-19 21:44:40.045909+02
 ```
 
 Note in particular that the parameter `sync_state` has the value "sync".
-Also, it could happen that the standby server is behind in behind the present state and is catching up reading the old WAL records from the master. In this case the value of the `state` parameter is "`catchup`".
+Also, it could happen that the standby server is behind the present state and is catching up reading the old WAL records from the primary. In this case the value of the `state` parameter is "`catchup`".
 
 It would be opportune to read also the detailed guide on [replication] for fine tuning.
 
-Now you can start the `lightningd` on master:
+Now you can start the `lightningd` on primary server:
 
 ```bash
 sudo systemctl start lightningd
@@ -358,11 +358,11 @@ sudo systemctl start lightningd
 It is recommended to read the official specific chapter on PostgresQL guide on the important [topic][failover].
 TL:D; please at least follow these rules:
 
-1. The standby server must become the master.
-2. The old master **must not** be made operational again with the old configuration.
+1. The standby server must become the primary.
+2. The old primary **must not** be made operational again with the old configuration.
 3. You have to setup a new standby server
 
-Also: you have to install c-lightning on the new master and restore the `lightning-dir` (default ~/.lightning) directory you have saved from the master and modify the config parameters relative to he network presence to reflect the addresses of the standby machine (now promoted master). Here below are a list of configuration parameters you should carefully consider in bringing the new master online as the new lightning node:
+Also: you have to install c-lightning on the new primary server and restore the `lightning-dir` (default ~/.lightning) directory you have saved from the primary and modify the config parameters relative to he network presence to reflect the addresses of the standby machine (now promoted primary). Here below are a list of configuration parameters you should carefully consider in bringing the new primary online as the new lightning node:
 
 * `addr` shoud be relevant only if your machine was exposed to the network without NAT, so not relevant in our example.
 * `bind-addr=localhost` should be ok but to be contacted via NAT you must specify the LAN address. In our example 192.168.0.6.
