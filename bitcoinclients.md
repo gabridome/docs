@@ -3,8 +3,8 @@
 Many of you have heard about light clients and full nodes and know at most what
 the difference lay in.
 
-I have Participated to a very interesting workshop in Stanford for Scaling Bitcoin
-and our coordinator, Tadjie Dryja has done an excellent job in
+I have Participated to a very interesting workshop in Stanford for Scaling 
+Bitcoin and our coordinator, Tadjie Dryja has done an excellent job in
 laying down the current situation made of many more nuances I knew of.
 
 These Nuances lead to different trade offs between security and performance
@@ -13,7 +13,7 @@ the ledger.
 
 ## Full Validating Node
 
-"A [full node][fullNode] is a program that fully validates transactions and blocks.".
+>"*A [full node][fullNode] is a program that fully validates transactions and blocks.*".
 
 The first types of wallet we examine is the one that can be activated with a Full 
 Validating Node.
@@ -37,7 +37,7 @@ Output][TXO] to the next until the [Transaction Output from which it is not been
 The verified UTXO set is the map of where all the bitcoin in circulation are and of 
 what is required to spend them. 
 
-When a full validating node wreceives the transaction performs the security
+When a full validating node receives the transaction performs the security
 checks necessary to verify that the transaction involves sound money before
 putting it in the [mempool] and relaying it to the rest of the network:
 
@@ -45,14 +45,14 @@ putting it in the [mempool] and relaying it to the rest of the network:
 * are money created into/during the transaction? (accounting check)
 * Are the funds being spent existent and unspent before? (double spend check)
 
-This last check requires is the one requiring a legit copy of UTXO set.
+This last check requires is the one requiring a legit copy of the UTXO set.
 
 "Fake bitcoins", meaning in this context those resulting from a transaction that 
 tries to spend bitcoins created in an invalid way or to spend coins already 
 spent in a previous transaction, are refused by full nodes as soon as the 
 transaction tries to approach the first one in the propagation phase.
 
->*A wallet which is integrated with a full validating node have the maximum security 
+*A wallet which is integrated with a full validating node have the maximum security 
 and truslessness because it relies on the global informations of the Bitcoin economy*
 
 In normal operation, a fully validating node takes [20 Gbytes/month][MinimumRequirements]
@@ -87,9 +87,7 @@ For these checks there is no a real need to have the whole history of the bitcoi
 transactions.
 
 * The UTXO set is sufficient to check the origin of money
-* to be a node and to observe the transactions on the network
-
-helps avoiding the risk of double spending.
+* to be a node and to observe the transactions on the network helps avoiding the risk of double spending.
 
 This is what a pruned node does. It builds the UTXO set in the radical way by 
 downloading and verifing all the transaction history ([IBD]), but then it pruned it.

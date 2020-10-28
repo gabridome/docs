@@ -1,0 +1,31 @@
+PUB1=$(bitcoin-cli -rpcwallet=w1 getaddressinfo $(bitcoin-cli -rpcwallet=w1 getnewaddress) |jq '.pubkey')
+PUB2=$(bitcoin-cli -rpcwallet=w2 getaddressinfo $(bitcoin-cli -rpcwallet=w2 getnewaddress) |jq '.pubkey')
+PUB3=$(bitcoin-cli -rpcwallet=w3 getaddressinfo $(bitcoin-cli -rpcwallet=w3 getnewaddress) |jq '.pubkey')
+
+bitcoin-cli -rpcwallet=w3 addmultisigaddress 2 "[$PUB1, $PUB2, $PUB3]"
+{
+  "address": "bcrt1qe98wsjxrzs3asl524r9w8jxc3qsj9l8qa6dymz",
+  "scriptPubKey": "0014c94ee848c31423d87e8aa8cae3c8d8882122fce0",
+  "ismine": true,
+  "solvable": true,
+  "desc": "wpkh([630e6ebb/0'/0'/0']02c9d9d6c914dbfde77bf4b971fe35080316a1a856c320987648674e44119e6bcf)#d2ycv6mx",
+  "iswatchonly": false,
+  "isscript": false,
+  "iswitness": true,
+  "witness_version": 0,
+  "witness_program": "c94ee848c31423d87e8aa8cae3c8d8882122fce0",
+  "pubkey": "02c9d9d6c914dbfde77bf4b971fe35080316a1a856c320987648674e44119e6bcf",
+  "label": "",
+  "ischange": false,
+  "timestamp": 1573490576,
+  "hdkeypath": "m/0'/0'/0'",
+  "hdseedid": "42bbb44f2510ff5dc8d396f2e3136d51ec0b3bc4",
+  "hdmasterfingerprint": "630e6ebb",
+  "labels": [
+    {
+      "name": "",
+      "purpose": "receive"
+    }
+  ]
+}
+
