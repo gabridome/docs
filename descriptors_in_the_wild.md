@@ -1,6 +1,6 @@
 # Descriptors in the wild
 
-Output Descriptors has brought new hopes for those who, like me, would like to see 
+[Output Descriptors] has brought new hopes for those who, like me, would like to see 
 a greater interoperability in Bitcoin among different applications.
 
 Toghether with an other innovation, PSBT, they allow to set up and use multi signature wallets, make coinjoins, use different harware wallets with different software wallets
@@ -13,23 +13,23 @@ of interoperability to the whole environment.
 Also, I have tried to use this interoperability to do something useful: build a multi 
 signature multi software wallet.
 
-Immagine Alice using Bitcoin Core (from now on "Core") as a Wallet and willing to put 
+Immagine Alice using Bitcoin Core (from now on ["Core"][Bitcoin Core]) as a Wallet and willing to put 
 some bitcoin in common with Bob who is using a "Last generation" wallet, Bitcoin 
-Development Kit (from now on "BDK"), which uses descriptors and miniscript natively.
+Development Kit (from now on ["BDK"][BDK]), which uses descriptors and miniscript natively.
 
 With descriptors, we can set up a common multisignature wallet based on descriptors and
-utilize PSBT to pass along the transaction to complete the workflow to spend the bitcoin 
+utilize [PSBT] to pass along the transaction to complete the workflow to spend the bitcoin 
 in common.
 
 In this post all the necessary step are illustrated to serve as a guide to avoid many 
 possible mistakes.
 We will build a 2of2 key set up that will be used cooperatively by Bitcoin Core and Bitcoin Development Kit.
 We need:
-* Bitcoin Development Kit
-* Bitcoin Core
-* Pycoin ku utility
+* [Bitcoin Dev Kit][BDK]
+* [Bitcoin Core]
+* [Pycoin ku utility][pycoin]
 
-1. We build an Extended Private Master Key for both wallet and we derive a BIP84 Extended Master Public.
+1. We build an Extended Private Master Key for both wallet and derive a BIP84 Extended Master Public.
 
 ```
 # new Extended wallet data
@@ -181,3 +181,8 @@ repl -d "$BDK_rec_desc_chksum" -c "$BDK_chg_desc_chksum" -n testnet -w $BDK_fing
   "txid": "a0b082e3b0579822d4a0b0fa95a4c4662f6b128ffd43fdcfe53c37473ce85dee"
 }
 ```
+[Output Descriptors]: https://bitcoinops.org/en/topics/output-script-descriptors/
+[PSBT]: https://en.bitcoin.it/wiki/BIP_0174
+[BDK]: https://bitcoindevkit.org/
+[Bitcoin Core]: https://bitcoincore.org/
+[pycoin]: https://github.com/richardkiss/pycoin
