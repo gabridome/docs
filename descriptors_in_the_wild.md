@@ -267,6 +267,13 @@ repl -d "$BDK_rec_desc_chksum" -c "$BDK_chg_desc_chksum" -n testnet -w $BDK_fing
 }
 ```
 
+## Conclusion
+
+We have built an HDM and we have used it with two indipendent wallets which are compatible 
+with [BIP 174][PSBT] and [Output Descriptors]. Hopefully we will see many other compatible 
+wallets beyound [Bitcoin Core] and [BDK], with which we will be able to easily set up 
+multi signature schemes.
+
 
 [Descriptor wallets]: https://github.com/bitcoin/bitcoin/pull/16528
 [Electrum]: https://electrum.org
