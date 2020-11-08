@@ -124,13 +124,14 @@ export BDK_xpub_84_for_chg_desc="[$BDK_fingerprint/84'/0'/0']$BDK_xpub_84/1/*"
 
 ```
 
-2. We exchange the BIP84 Extended Master Public and we build a descriptor for each wallet:
+## We exchange the BIP84 Extended Master Public and we build a descriptor for each wallet:
 
 To build a multisig wallet, each wallet owner must compose the descriptor adding:
 * his derived extended private key AND 
-* all the extended public key of the other wallets involved in the multi 
-signature set up 
+* all the extended public key of the other wallets involved in the multi signature set up 
 and composing a newly created multi signature output descriptor with them.
+
+### Bitcoin Core
 
 In our case, the multi signature descriptor for Bitcoin Core will be composed with:
 
@@ -146,6 +147,8 @@ export core_rec_desc="wsh(multi(2,$BDK_xpub_84_for_rec_desc,$core_xprv/84'/0'/0'
 ```
 
 Where of course `$BDK_xpub_84_for_rec_desc`is the derived master public created in BDK and received by Core's owner.
+the meaning of what is before and after is illustrated in the doc that explain 
+the use of [Output Descriptors in Bitcoin Core][Output Descriptors].
 
 We add the necessary checksum using the specific `bitcoin-cli` call.
 
@@ -160,18 +163,9 @@ export core_chg_desc="wsh(multi(2,$BDK_xpub_84_for_chg_desc,$core_xprv/84'/0'/0'
 export core_chg_desc_chksum=$core_chg_desc#$(bitcoin-cli -testnet getdescriptorinfo $core_chg_desc|jq -r '.checksum')
 ```
 
-Now we are ready to import the descriptor into Core, but before...
+### BDK
 
-
-3. we create an experimental empty Descriptor Wallet and we import the descriptors created for this wallet.
-
-```
-bitcoin-cli -testnet createwallet "multisig2of2withBDK" false true "" false true false
-bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK importdescriptors "[{\"desc\":\"$core_rec_desc_chksum\",\"timestamp\":\"now\",\"active\":true,\"internal\":false},{\"desc\":\"$core_chg_desc_chksum\",\"timestamp\":\"now\",\"active\":true,\"internal\":true}]"
-export first_address=$(bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK getnewaddress)
-echo $first_address
-```
-3. For BDK we set the derivation for receiving addresses and change addresses in the command line (maybe setting an alias)
+For BDK we set the derivation for receiving addresses and change addresses in the command line (maybe setting an alias)
 
 Building the descriptor:
 
@@ -196,35 +190,58 @@ env |grep core_
 env |grep BDK_
 ```
 
+## Creating the multisig wallet and obtaining our first address
+
+Now we are ready to create an experimental empty Descriptor Wallet and to import the descriptors created for this wallet. We will do this both in Core and in BDK.
+
+### Bitcoin Core
+
+```
+bitcoin-cli -testnet createwallet "multisig2of2withBDK" false true "" false true false
+bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK importdescriptors "[{\"desc\":\"$core_rec_desc_chksum\",\"timestamp\":\"now\",\"active\":true,\"internal\":false},{\"desc\":\"$core_chg_desc_chksum\",\"timestamp\":\"now\",\"active\":true,\"internal\":true}]"
+export first_address=$(bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK getnewaddress)
+echo $first_address
+```
+
+### BDK
+
 Now we use BDK to get the first multisig address:
 
 ```
 repl -d "$BDK_rec_desc_chksum" -c "$BDK_chg_desc_chksum" -n testnet -w $BDK_fingerprint get_new_address`
 ```
 
-Et voilà: the newly created address in Core is the same of the newly created address in BDK. this is part of the miracle
-of descriptors' interoperability.
+Et voilà: the newly created address in Core is the same of the newly created address in BDK. this is part of the miracle of descriptors' interoperability.
 
-6. we ask for testnet coins giving the first created address.
-I Have already a multisig account in Core so I can do
+## We ask for testnet coins giving the first created address.
+
+To find testnet coins for free you can just google "testnet faucet" and you should 
+find some satoshi to play. Just give to the site your first generated address and, 
+in twenty minutes, you will find the satoshis in your balance both in Core and in 
+BDK.
 
 ```
-export psbt=$(bitcoin-cli -testnet -rpcwallet=coremultisig2of2 walletcreatefundedpsbt "[]" "[{\"$first_address\":0.00002}]"|jq -r '.psbt')
-export psbt=$(bitcoin-cli -testnet -rpcwallet=coremultisig2of2 walletprocesspsbt $psbt|jq -r '.psbt')
-export tx=$(bitcoin-cli -testnet -rpcwallet=coremultisig2of2 finalizepsbt $psbt|jq)
-export tx=$(bitcoin-cli -testnet -rpcwallet=coremultisig2of2 finalizepsbt $psbt|jq -r '.hex')
-bitcoin-cli -testnet sendrawtransaction $tx
-# after the first confirmation:
-bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK getbalance "*" 1
-```
+# to check it in Core:
 
-6. we send satoshis to this address and we check its arrival in the two wallets.
+bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK getbalance
+
+# In BDK
+
+repl -d "$BDK_rec_desc_chksum" -c "$BDK_chg_desc_chksum" -n testnet -w $BDK_fingerprint get_balance
+
+```
+Some testnet faucets have an address to send back the unused satoshi after having tested your application. Take note of that because we will use it in the next step
+
+## we send part of our balance back to the faucet
 
 ```
 export psbt=$(bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK walletcreatefundedpsbt "[]" "[{\"tb1qrcesfj9f2d7x40xs6ztnlrcgxhh6vsw8658hjdhdy6qgkf6nfrds9rp79a\":0.000012}]"|jq -r '.psbt')
 
 export psbt=$(bitcoin-cli -testnet -rpcwallet=multisig2of2withBDK walletprocesspsbt $psbt|jq -r '.psbt')
 ```
+
+Where `tb1qrcesfj9f2d7x40xs6ztnlrcgxhh6vsw8658hjdhdy6qgkf6nfrds9rp79a` is the address 
+we got from the faucet site to return the satoshis.
 
 Exactly. We have processed the transaction with Core but we miss in the wallet one of the 
 necessary key of the multisig 2of2 setup. The one contained inside BDK.
