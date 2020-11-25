@@ -8,7 +8,7 @@ This article assumes a good knowledge of how Lightning Network works. For a bett
 
 Every Lightning Network node must keep track of every *state* of each of its channels in every moment in order to preserve the integrity of the funds it manages.
 
-If a node broadcast an old channel state and "force close" a channel, its peer have lag of time within which it has the right and will broadcast a [penalty transaction], spending the funds which would be destined to the node, to an address the peer instead control.
+If a node broadcast an old channel state and "force close" a channel, its peer have a lag of time within which it has the right and will broadcast a [penalty transaction], spending the funds which would be destined to the node, to an address the peer instead control.
 
 This implies that if we loose the data regarding the channel state (due e.g. to a system failure) and we have an outdated backup to restore from, it is really dangerous to force close any of our channels, because we cannot be sure to broadcast the latest valid state and we could lose our share of bitcoins in the channel.
 
@@ -72,6 +72,9 @@ Our machines have this IP address:
 * Standby server 192.168.0.6
 
 This guide is based on version 12. This version has had a non trivial change [in the way the restore operation is done for replication][release notes for v.12],  so it is better to upgrade to it.
+
+As PostgresQL and c-lightning evolve, there will be the possibility that this guide become outdated but, referring to the official 
+documentation of the two software, you will be able to adapt the content of this guide to the new situation.
 
 #### Download and install ver.12.x on both machine
 
