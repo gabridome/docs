@@ -1,8 +1,8 @@
-# DECREE No.
-# THE LEGISLATIVE ASSEMBLY OF THE REPUBLIC OF EL SALVADOR
-# CONSIDERING:
+# DECRETO n.
+L'ASSEMBLEA LEGISLATIVA DELLA REPUBBLICA DI EL SALVADOR
+CONSIDERANDO:
 
-DISPOSIZIONI GENERALI
+## DISPOSIZIONI GENERALI
 Articolo -1. Lo scopo di questa legge è di regolamentare bitcoin come moneta a corso legale, 
 illimitata con potere liberatorio, illimitato in qualsiasi transazione e sotto qualsiasi titolo 
 che le persone fisiche o giuridiche pubbliche o private richiedano di effettuare.
@@ -40,10 +40,11 @@ Art. 9. I limiti e il funzionamento delle alternative di conversione automatica 
 bitcoin a dollaro previste dallo Stato saranno specificate nei Regolamenti a tal fine emanati.
 
 
-Art. 10. Il Potere Esecutivo creerà la struttura istituzionale necessaria ai fini dell'applicazione della presente legge.
+Art. 10. Il Potere Esecutivo creerà la struttura istituzionale necessaria ai fini dell'applicazione 
+della presente legge.
 
 
-DISPOSIZIONI FINALI E TRANSITORIE
+## DISPOSIZIONI FINALI E TRANSITORIE
 Art. 11. La Banca Centrale di Riserva e la Soprintendenza al Sistema Finanziario 
 emanano i relativi regolamenti entro il termine di cui all'articolo 16 della 
 presente legge.
