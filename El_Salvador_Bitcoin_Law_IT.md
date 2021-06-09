@@ -7,7 +7,6 @@ Articolo -1. Lo scopo di questa legge è di regolamentare bitcoin come moneta a 
 illimitata con potere liberatorio, illimitato in qualsiasi transazione e sotto qualsiasi titolo 
 che le persone fisiche o giuridiche pubbliche o private richiedano di effettuare.
 
-
 Quanto indicato nel paragrafo precedente non pregiudica l'applicazione della 
 Legge di Integrazione Monetaria.
 
