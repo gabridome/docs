@@ -392,6 +392,8 @@ Also in detail:
 
 <a name="f3">3</a>: It is possible to adopt postgresQL [migrating the data in your existing sqlite database to postgresQL][sqlite postgres migration]. [↩](#a3)
 
+<a name="f4">4</a>: The entire process can also be automated with as script [automated with a script][automated with a script]. [↩](#a4)
+
 [WAL+streaming]: https://github.com/gabridome/docs/blob/WAL+streaming/c-lightning_with_postgresql_reliability.md
 [PostgrQL]: https://www.postgresql.org/
 [backup solutions]: https://youtu.be/kGQF3wtzr04?t=171
@@ -418,3 +420,4 @@ Also in detail:
 [Lightning Network RFC]: https://github.com/lightningnetwork/lightning-rfc/blob/master/00-introduction.md
 [wireguard]: https://www.wireguard.com/
 [failover]: https://www.postgresql.org/docs/12/warm-standby-failover.html
+[automated with a script]: https://gist.github.com/lightningorb/fee236a7c9de84435927bfa1ad0ddc79
